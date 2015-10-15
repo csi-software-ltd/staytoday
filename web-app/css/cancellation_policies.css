@@ -1,0 +1,156 @@
+#timeline-section {
+    height: 60px;
+    margin-top: 70px;	
+}
+#timeline-section .timeline-pins {
+    margin-top: -67px;
+}
+#timeline-section .timeline-pins .label {
+	background: #393c3d;
+	background: -moz-linear-gradient(top, #575a5b, #393c3d);
+	background: -webkit-gradient(linear, center top, center bottom, from(#575a5b), to(#393c3d));
+	background: -o-linear-gradient(top, #575a5b, #393c3d);
+	background: -ms-linear-gradient(top, #575a5b, #393c3d);
+	background: linear-gradient(top, #575a5b, #393c3d);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff575a5b', endColorstr='#ff393c3d', GradientType=0);	 
+    border: 1px solid #54585A;
+    border-radius: 2px;
+    -moz-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	-o-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+    color: #FFFFFF;
+    font-size: 1.2em;
+    font-weight: bold;
+    left: -50%;
+    padding: 4px 8px;
+    position: relative;
+    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+}
+#timeline-section .timeline-pins .arrow {
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAJCAYAAAGTY%2Ba7AAAA9UlEQVQYV2VQy07EMAy00CYHSjdp2COIK1r6SKE3oO2m7XbLX%2FEly0flf4xtlBOVpolH4xk7MK0X7E8BITdGAFLRl%2FPPTucVjbVXoRkzNYAtXAzLmXXZXxfArZzucIjzuuHHMArY3zr3A8YWYrg3NuZ7c%2BVW4YZpFuOEkWrwbx1%2BjkEsmCwbj6C09nX7KsRLVXP6I3vulFL%2B%2BVgm4iaNtCM4JqRuuw6X7Qv7MJH36R8G4ufLhrVvEbTWbeHuY0N5%2FAY8yHs%2FiDAsq%2BRbW%2FAaTynKKqU97RQrcuCkY1kh7csiniuT2YgQpCaavsnu8m%2B6PyRR0vwCIche%2FtWYcGMAAAAASUVORK5CYII%3D") no-repeat scroll left top transparent;
+    bottom: -8px;
+    height: 10px;
+    left: 50%;
+    margin-left: -5px;
+    position: absolute;
+    width: 10px;
+}
+#timeline-section .timeline-pins .arrow .circle {
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAAEhlFeZAAAE5ElEQVRIx7VWW09cVRQ%2BnakM17lCYYBwEUphOlNghhkKHWa4X4Y7DDADBYRWaABpaSy9hNoXoy%2FVxMRHjYlPJq0x8c344IMvPvkDTOOLMfqk0VBTG5vl9x3OocMwBGxxJV%2FOOfusvfZae6%2F1ra0omgTD4e%2BD4dadj%2BGxcSFGoxPC76zO3j7RoWrU%2BxoE6vzI3jNftcF5uo06X4OiJM1Xp2S1tLaJ1x8QuyN3Z1n%2F%2Baa7E7G4RKdiKviOsfuNzRfU%2F1mRwSFJhfT0DIuq0d7VLeH2jj3gmgWFRUqy0InsHItF0bErzS2hUQaHZ3Q3JsrK%2BrVd54jVaxuiOocgt%2FWAE4Hxp8pEfDql11MzFwU7E5HE3dHR0z8gcM8cSA6HMFssYdUhvGy1dXbJhVBY%2BLRYrO%2FsbqcmadTjc1%2BcFLg%2FPLt4WVY3rsvMa4syOT2D5wJCuy7zl5cY3gz2QdGhSkXlafvi0rKMTUweCupVu84WNQQa1bmvjE5MyODI6JExNjklWhiKeRwfPZH%2BI4OnlJZmsqsrF5eUPOns6RVmyWHo6O4R6D%2FTV6aYsLUfdfVFpKWtXZi9%2B4DxbqzqyM17QP28U%2Fn70s4ElGSbze%2BZrdZHFptN8PwR3x9ivJT%2FMabo2CeBpuZMHPanKLefkJY%2F4%2F0z7KxZT9M96arJCZzbbzfubMkCjiI%2BOyexi7Oy8PqS3Nq6xxz%2FQ9N5fr4QQwzZOTM3vyffEzFNQ8xg6OoFqsCV3zl4WFJMoiSgu60mRWn5q%2FlzC5ckVQGlwjzStbLqTJni8ng%2Bp7WjZhJpCXO%2BVpCPf%2FYPDctBfJIKNWfdomDZx72ozP%2BSgqfPVItSUlr2ZS%2BspCr1VOgdGJSSsvJvlByzuXpwdOxIOUsMQddqszXwNDJAe49TUWIy2qAD3aecoyeAs7beK60dnakTHQjjX53XxwQoTEx0A1CMSvmrG5USQkWQnAi%2Bcwz%2FnrAIqJtMVicAW5rJ1IKq%2BJbVoVXIdxhrwz8WsuHA6tBWZww5GjI5lsjy%2BxgwWXz%2BgBmV8C5c3h6fjMnK%2BlXZ2Lwpb968I7ffuic3bt1Wv1evbqAQ4gzt76ZgywfoVLl4Vw5CSm9Rz3eHx6PCznJldU3iKE22vcMwBZpeWlmVNXSgcVQj7NynvfMXgkoi9uxtfYM%2FCi%2F%2FubL2hmqAZPqiYAUvw2GyM5r4JdqHbfbw59HVer3v07s4eGQUhTqCAnxZ0E4M3MOuWufzfYx1jF6%2Ff2fBGrdnmZ2TrZWVcNxgd4yAOFyec5tasikZNW73D9FYTKUYsspxYwB2ubDL7f5Fy2glp6q6Rh3sA1H8X%2BAWu9weyc07VawuWl5R%2BYhkRApkJR83SJcjY1HBOr9qtxYlw1lYtO4LNKpbwa583IgMDvOWI86i4i2dAHmw1gKn8yGIQI2WLMoL1suCdhgl%2BjcYt%2FAr0p2eSBQjB0CKm57aOuFVgwxM4nxRkKVZEWRqR27u2xqHGvMLnPuIN9NgMJRa7fZP0CQlhL7Q3tWjUj0vw4eBeoyuFVG64bzN4XhoPHmygvd2RujIy1OIg0ibae00mUxBi9X6wGa3P3PX1kpTMKReqrrYFnFz43OnpYTkXH295DudAv0v0tPT2R0K9cUwX0nEYWLUDt6mGSkHqoAawKU9q7TxIm0LqW9Ea1IOwr8TT1iwGgnK7QAAAABJRU5ErkJggg%3D%3D") no-repeat scroll left top transparent;
+    height: 50px;
+    margin-left: -7px;
+    margin-top: 17px;
+    position: absolute;
+    width: 50px;
+}
+#timeline-section .timeline-pins .arrow .time {
+    color: #848484;
+    font-size: 12px;
+    font-weight: normal;
+    margin-left: -42px;
+    margin-top: 55px;
+    position: absolute;
+    text-align: center;
+    text-shadow: none;
+    width: 105px;
+}
+#timeline-section .timeline-pins .example {
+    color: #848484;
+    font-size: 12px;
+    margin-left: -607px;
+    margin-top: 52px;
+    position: absolute;
+    text-align: center;
+}
+#first-pin  { left: 313px; }
+#second-pin { left: 633px; }
+#third-pin  { left: 895px; }
+#first-pin, #second-pin, #third-pin { position: absolute; }
+#timeline {
+    font: normal bold 12px/25px Tahoma; 
+	color: #000;
+    height: 25px;
+    margin-left: 7px;
+    position: relative;
+    width: 900px;
+}
+#timeline div {
+    float: left;
+    text-align: center;
+}
+#first-timeline-block, #second-timeline-block, #third-timeline-block, #fourth-timeline-block, #first-half-timeline-block {
+    -moz-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	-o-box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 0 0.2em rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+    /*opacity: 0.6;*/
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+#first-timeline-block {
+	background: #4AA400;
+	background: -moz-linear-gradient(top, #5CCD00, #4AA400);
+    background: -webkit-gradient(linear, center top, center bottom, from(#5CCD00), to(#4AA400));
+	background: -o-linear-gradient(top, #5CCD00, #4AA400);
+	background: -ms-linear-gradient(top, #5CCD00, #4AA400);
+	background: linear-gradient(top, #5CCD00, #4AA400);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5CCD00', endColorstr='#ff4AA400', GradientType=0);	
+    border: 1px solid #459A00;
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+    width: 287px;
+}
+#second-timeline-block {
+    width: 316px;
+}
+.timeline-block, #first-half-timeline-block {
+    background: #F5C501;	
+	background: -moz-linear-gradient(top, #FED221, #F5C501);
+	background: -webkit-gradient(linear, center top, center bottom, from(#FED221), to(#F5C501));
+	background: -o-linear-gradient(top, #FED221, #F5C501);
+	background: -ms-linear-gradient(top, #FED221, #F5C501);
+	background: linear-gradient(top, #FED221, #F5C501);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffFED221', endColorstr='#ffF5C501', GradientType=0);	
+    border: 1px solid #EBBC01;
+}
+.timeline-block-severe, #third-timeline-block, #fourth-timeline-block {
+	background: #FF6D0F;
+	background: -moz-linear-gradient(top, #FF8638, #FF6D0F);
+    background: -webkit-gradient(linear, center top, center bottom, from(#FF8638), to(#FF6D0F));
+	background: -o-linear-gradient(top, #FF8638, #FF6D0F);
+	background: -ms-linear-gradient(top, #FF8638, #FF6D0F);
+	background: linear-gradient(top, #FF8638, #FF6D0F);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffFF8638', endColorstr='#ffFF6D0F', GradientType=0);
+    border: 1px solid #FF6705;
+}
+#third-timeline-block { width: 262px; }
+#fourth-timeline-block {
+    border-bottom-right-radius: 15px;
+    border-top-right-radius: 15px;
+    width: 10px;
+}
+#first-half-timeline-block {
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+    width: 603px;
+}
+#timeline-annotation .tl-annotation {
+    float: left;
+    padding: 25px;
+    position: relative;
+    width: 270px;
+}
+#timeline-annotation .tl-annotation:first-child { padding-left: 0; }
+#timeline-annotation .tl-annotation:last-child  { padding-right: 0;}
+#timeline-annotation .tl-annotation .annotation-border {
+    border-left: 1px solid #D5D5D5;
+    height: 70px;
+    left: 0;
+    margin-top: 15px;
+    position: absolute;
+}
+#timeline-annotation .tl-annotation li {
+    list-style-type: none;
+    margin-bottom: 15px;
+	line-height: 15px;
+}

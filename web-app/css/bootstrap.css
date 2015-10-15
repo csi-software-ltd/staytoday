@@ -1,0 +1,113 @@
+/*!Bootstrap v2.1.1
+ * Copyright 2012 Twitter, Inc
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Designed and built with all the love in the world @twitter by @mdo and @fat.
+ */
+.carousel { position: relative; margin-bottom: 0px; line-height: 1; }
+.carousel-inner { position: relative; width: 100%; overflow: hidden; }
+.carousel .item {
+	position: relative;
+	display: none;
+	-webkit-transition: 0.6s ease-in-out left;
+	-moz-transition: 0.6s ease-in-out left;
+	-o-transition: 0.6s ease-in-out left;
+	transition: 0.6s ease-in-out left;
+	width: 220px;
+	margin: 6px;
+}
+.carousel .item > img { display: block; line-height: 1; }
+.carousel .active, .carousel .next, .carousel .prev { display: block; }
+.carousel .next, .carousel .prev { position: absolute; top: 0; width: 100%; }
+.carousel .active, .carousel .next.left, .carousel .prev.right { left: 0; }
+.carousel .prev, .carousel .active.left  { left: -100%;}
+.carousel .next, .carousel .active.right { left: 100%; }
+.carousel-control {
+	position: absolute;
+	top: 40%;
+	left: 15px;
+	width: 40px;
+	height: 40px;
+	margin-top: -20px;
+	font-size: 60px;
+	font-weight: 100;
+	line-height: 30px;
+	color: #ffffff;
+	text-align: center;
+	background: #222222;
+	border: 3px solid #ffffff;
+	-webkit-border-radius: 23px;
+	-moz-border-radius: 23px;
+	border-radius: 23px;
+	opacity: 0.5;
+	filter: alpha(opacity=50);  
+}
+.carousel-control.right { right: 15px; left: auto; }
+.carousel-control:hover { color: #ffffff; text-decoration: none; opacity: 0.9; filter: alpha(opacity=90); }
+.carousel-caption {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: 15px;
+	background: #333333;
+	background: rgba(0, 0, 0, 0.75);
+}
+.carousel-caption h4, .carousel-caption p { line-height: 20px; color: #ffffff; }
+.carousel-caption h4 { margin: 0 0 5px; }
+.carousel-caption p  {  margin-bottom: 0;}
+.carousel .item .thumbnail { width: 220px; height: 160px; }
+.carousel .item .description { padding-left: 0px; text-align: left }
+.carousel .description h2.title { padding-left: 0px; margin-top: 3px; }
+.carousel .details-list, .carousel .details-list .details-list-item { margin: 0px }
+*html .carousel .description h2.title { margin-top: 0px !important }
+*html #carousel h2.title a[href] { color: #3F5765 !important } 
+*html .carousel .photo_item_details .ss_price { padding: 4px 4px !important }
+
+#staytoday_search { background: #ff530d; height: 60px; }
+#wg_where {	
+	border: 1px solid #cfcfcf;
+	color: #666;
+	display: inline-block;
+	float: left;
+	font-size: 13px;    
+	padding: 5px 7px; 	
+}
+#wg_submitButton {
+	background: #E3E3DE url("../images/search.png") no-repeat scroll center center;
+	border: 1px solid #cfcfcf;
+	border-radius: 0 5px 5px 0;
+	display: inline-block;
+	float: left;
+	height: 28px;
+	margin-left: -28px;
+	width: 28px;
+	text-indent: -9999px;
+	_height: 27px; 
+}
+#staytoday_search .dropdown-list small.select { margin-left: 0px; display: inline-block; }
+#staytoday_search .dropdown-list small a[href] { color: #fff !important; }
+
+.b-widget-fixed { width: 433px; height: 315px; }
+.b-widget-fixed h2.b-widget__title { 
+	background: none !important; 
+	padding-left: 0px !important;
+	margin-bottom: 0.3em;
+	font: normal bold 13px/16px Arial !important;
+	letter-spacing: 0px;  	
+}
+.b-widget-fixed h2.b-widget__title, .b-widget-fixed h2 a[href] { color: #000 !important; }
+.b-widget-fixed h2 a[href] { text-decoration: underline; }
+.b-widget-fixed h2 a:hover { color: #ff0000 !important }
+.b-widget-data { margin: 0 0 18px; position: relative; z-index: 1; }
+.b-widget-data iframe { background: none repeat scroll 0 0 transparent }
+.external {
+	color: #999;	
+	font-size: 75%;
+	letter-spacing: 0px;  	
+	margin: -14px 0 10px;
+	position: relative;
+	display: inline-block;
+	white-space: nowrap;
+	width: 100%;
+}

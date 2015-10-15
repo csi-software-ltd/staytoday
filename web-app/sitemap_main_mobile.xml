@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0">
+  <url>
+    <loc>http://m.staytoday.ru</loc>
+    <mobile:mobile/>
+  </url>
+  <url>
+    <loc>http://m.staytoday.ru/about</loc>
+    <mobile:mobile/>    
+  </url>
+  <url>
+    <loc>http://m.staytoday.ru/terms</loc>
+    <mobile:mobile/>
+  </url>
+  <url>
+    <loc>http://m.staytoday.ru/contract</loc>
+    <mobile:mobile/>
+  </url>
+  <url>
+    <loc>http://m.staytoday.ru/help</loc>
+    <mobile:mobile/>
+  </url>
+</urlset>
