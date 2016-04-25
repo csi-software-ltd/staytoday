@@ -1,7 +1,7 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class HomeService {
   def messageSource
-
+  def grailsApplication
 	def setHomeModstatus(iModstatus,iHome_id,iClient_id, newClient_id = 0){
 		def oHome=Home.findWhere(id:iHome_id,client_id:iClient_id)
 		if(oHome){
@@ -45,7 +45,7 @@ class HomeService {
 		def tmpPrice = Homeprop.findAll("FROM Homeprop WHERE date_end>=:date_start_query AND home_id=:home_id AND modstatus=1 AND term>0 ORDER BY date_start",[date_start_query:date1.getTime(),home_id:oHome.id])
 		def resstatModifier = 1.0
 		if (Client.get(oHome.client_id)?.resstatus==1) {
-			resstatModifier = resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+			resstatModifier = resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
 		}
 		if(tmpPrice.size()>0){
 			hsTmp.price_day = Math.round(tmpPrice[0].price_rub*resstatModifier)
@@ -117,7 +117,7 @@ class HomeService {
             .replace('[METRO]',(hsRes.inrequest?.metro_id?:[]).size()==1?' у '+hsRes.breadcrumbs.metro?.name:'').replace('"','')
             .replace('[VSIGN]',(hsRes.inrequest?.citysight_id?:[]).size()==1?' '+(hsRes.breadcrumbs.citysight?.type==1?'':(hsRes.breadcrumbs.citysight?.type==2?'на ':'в '))+hsRes.breadcrumbs.citysight?.name2:'')
             .replace('[SIGN]',(hsRes.inrequest?.citysight_id?:[]).size()==1?' '+hsRes.breadcrumbs.citysight?.name:'')
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             .replace('[HOMETYPESS]',hsRes.infotags.hometypess)+          
@@ -134,7 +134,7 @@ class HomeService {
             .replace('[CITY]',' '+hsRes.infotags.city+((hsRes.inrequest?.view=='map')?' на карте':''))
             .replace('[HOMEROOMS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroom2+' ':'')
             .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             .replace('[HOMETYPES]',(hsRes.inrequest?.hometype_id>0)?hsRes.infotags.hometypes:hsRes.infotags.hometypess)
             .replace('[HOMETYPESS]',hsRes.infotags.hometypess)+
@@ -157,7 +157,7 @@ class HomeService {
           .replace('[SIGN]',(hsRes.inrequest?.citysight_id?:[]).size()==1?' '+(hsRes.breadcrumbs.citysight?.type==1?'':(hsRes.breadcrumbs.citysight?.type==2?'на ':'в '))+hsRes.breadcrumbs.citysight?.name2+((hsRes.inrequest?.view=='map')?' на карте':''):'')
           .replace('[VCITY]',hsRes.infotags.vcity+((!hsRes.inrequest?.metro_id && !hsRes.inrequest?.citysight_id && hsRes.inrequest?.view=='map')?' на карте':''))
           .replace('[CITY]',hsRes.infotags.city+((!hsRes.inrequest?.metro_id && !hsRes.inrequest?.citysight_id && hsRes.inrequest?.view=='map')?' на карте':''))
-          .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+          .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
           .replace('[HOMETYPE]',hsRes.infotags.hometype)+
           ((hsRes.inrequest?.longdiscount && !hsRes.inrequest?.hotdiscount)?' - раннее бронирование':'')+
           ((!hsRes.inrequest?.longdiscount && hsRes.inrequest?.hotdiscount)?' - горящие предложения':'')+
@@ -167,7 +167,7 @@ class HomeService {
           .replace('[SIGN]',(hsRes.inrequest?.citysight_id?:[]).size()==1?' '+(hsRes.breadcrumbs.citysight?.type==1?'':(hsRes.breadcrumbs.citysight?.type==2?'на ':'в '))+hsRes.breadcrumbs.citysight?.name2+((hsRes.inrequest?.view=='map')?' на карте':''):'')
           .replace('[VCITY]',hsRes.infotags.vcity+((!hsRes.inrequest?.metro_id && !hsRes.inrequest?.citysight_id && hsRes.inrequest?.view=='map')?' на карте':''))
           .replace('[CITY]',hsRes.infotags.city+((!hsRes.inrequest?.metro_id && !hsRes.inrequest?.citysight_id && hsRes.inrequest?.view=='map')?' на карте':''))
-          .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+          .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
           .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
           .replace('[HOMETYPE]',hsRes.infotags.hometype)
           .replace('[HOMETYPESS]',hsRes.infotags.hometypess)
@@ -180,7 +180,7 @@ class HomeService {
             .replace('[VCITY]',' '+hsRes.inrequest?.where)
             .replace('[CITY]',' '+hsRes.inrequest?.where)
             .replace('[METRO]','').replace('[VSIGN]','').replace('[SIGN]','')
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             .replace('[HOMETYPESS]',hsRes.infotags.hometypess)+          
@@ -192,7 +192,7 @@ class HomeService {
             .replace('[CITY]',' '+hsRes.inrequest?.where+((hsRes.inrequest?.view=='map')?' на карте':''))
             .replace('[VCITY]',' '+hsRes.inrequest?.where+((hsRes.inrequest?.view=='map')?' на карте':''))
             .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             .replace('[HOMETYPESS]',hsRes.infotags.hometypess)+
             (hsRes.inrequest?.longdiscount?', раннее бронирование':'')+
@@ -205,13 +205,13 @@ class HomeService {
             (hsRes.inrequest?.hotdiscount?'. Скидки на горящие предложения':'')          
           hsRes.h1=(hsRes.infotext?.promotext1?:'')
             .replace('[CITY]',hsRes.inrequest?.where+((hsRes.inrequest?.view=='map')?' на карте':''))
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             ((hsRes.inrequest?.longdiscount && !hsRes.inrequest?.hotdiscount)?' - раннее бронирование':'')+
             ((!hsRes.inrequest?.longdiscount && hsRes.inrequest?.hotdiscount)?' - горящие предложения':'')+
             ((hsRes.inrequest?.longdiscount && hsRes.inrequest?.hotdiscount)?' - скидки':'')          
           hsRes.itext=(hsRes.infotext?.itext3?:'').replace('[CITY]',hsRes.inrequest?.where+((hsRes.inrequest?.view=='map')?' на карте':''))
-            .replace('[HOMEROOM]',(hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom[0..-3]+'ую ':'')
+            .replace('[HOMEROOM]',((hsRes.inrequest?.bedroom && hsRes.inrequest.hometype_id==1)?hsRes.infotags.homeroom6:'')+' ')
             .replace('[HOMEROOMSS]',(hsRes.inrequest?.bedroom && hsRes.inrequest?.hometype_id==1)?hsRes.infotags.homeroomss+' ':'')
             .replace('[HOMETYPE]',hsRes.infotags.hometype)
             .replace('[HOMETYPESS]',hsRes.infotags.hometypess)

@@ -1,8 +1,7 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class SpyJob {
   static triggers = {
-    simple startDelay:60000, repeatInterval: (Tools.getIntVal(ConfigurationHolder.config.spy_timeout1,30000))
+    simple startDelay:60000, repeatInterval: (Tools.getIntVal(Holders.config.spy_timeout1,30000))
   }
   def execute() {
     try{

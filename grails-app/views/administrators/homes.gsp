@@ -50,6 +50,7 @@
         document.getElementById('reviews').children[0].checked=false;
         document.getElementById('hotdiscount').children[0].checked=false;
         document.getElementById('longdiscount').children[0].checked=false;
+        document.getElementById('unrealiable').children[0].checked=false;
         $('inputdate').setValue('');
         $('inputdate_year').setValue('');
         $('inputdate_month').setValue('');
@@ -105,7 +106,7 @@
                     <option value="${item.modstatus}" <g:if test="${item.modstatus==inrequest?.modstatus || (item.modstatus==1 && inrequest?.modstatus==null)}">selected="selected"</g:if>>${item.toString()}</option>
                   </g:each>
                 </select>
-              </span>&nbsp;&nbsp;
+              </span>&nbsp;
               <span nowrap>
                 <label for="is_confirmed">Статус модерации:</label>
                 <select id="is_confirmed" name="is_confirmed">
@@ -113,11 +114,15 @@
                   <option value="1" <g:if test="${inrequest?.is_confirmed==1}">selected="selected"</g:if>>рассмотрено</option>
                   <option value="-1" <g:if test="${inrequest?.is_confirmed==-1}">selected="selected"</g:if>>все</option>
                 </select>            
-              </span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              </span>&nbsp;
               <span nowrap>
                 <label for="inputdate">Дата создания:</label>
                 <calendar:datePicker name="inputdate" needDisable="false" dateFormat="%d-%m-%Y" value="${inrequest?.inputdate}"/>
-              </span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              </span>&nbsp;
+              <span id="unrealiable" nowrap>
+                <input type="checkbox" name="unrealiable" <g:if test="${inrequest?.unrealiable}">checked</g:if> value="1"/>
+                <label for="unrealiable">Недостоверное</label>
+              </span>
             </td>
           </tr>
           <tr>

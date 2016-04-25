@@ -239,6 +239,17 @@
                           <li class="clearfix"><span class="icon none"></span><span class="label">${message(code:'verify.agency.nospecified')}</span></li>
                       </g:else>
                         </ul>
+                        <ul class="list" style="margin-top:0px">
+                        <g:if test="${client}">
+                        <g:if test="${client.partnerstatus==2}">
+                          <li class="clearfix"><span class="icon"></span><span class="label">${message(code:'verify.partner.confirmed')}</span></li>
+                        </g:if><g:else>
+                          <li class="clearfix"><span class="icon none"></span><span class="label">${message(code:'verify.please')}, <g:link controller="account" action="partner" base="${context?.mainserverURL_lang}">${message(code:'verify.confirm')}</g:link> ${message(code:'verify.partner')}.</span></li>
+                        </g:else>
+                        </g:if><g:else>
+                          <li class="clearfix"><span class="icon none"></span><span class="label">${message(code:'verify.partner.nospecified')} ${message(code:'payout.notice.noclient')}</span></li>
+                        </g:else>
+                        </ul>
                       </div>
                     </div>
                     <div rel="layer" style="display:none">

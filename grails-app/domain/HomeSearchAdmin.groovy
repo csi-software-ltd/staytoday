@@ -22,6 +22,7 @@ class HomeSearchAdmin {
   Date moddate
   Integer is_mainpage
   Integer is_specoffer
+  Integer unrealiable
 
   String mainpicture
   Integer picture_cnt
@@ -32,7 +33,7 @@ class HomeSearchAdmin {
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  def csiSelectHomes(lId,iCountry_id,iRegion_id,iModstatus,iIs_confirmed,iIs_mainpage,iIs_specoffer,sInputdate,sInputdateNext,lUserid,sClient_name,iReserve,iComm,iHotdiscount,iLongdiscount,sLinkname,iCity_id,iOrder,iMax,iOffset,bGroup=false,iPopDirId=0,lsRegionIds=[]){
+  def csiSelectHomes(lId,iCountry_id,iRegion_id,iModstatus,iIs_confirmed,iIs_mainpage,iIs_specoffer,sInputdate,sInputdateNext,lUserid,sClient_name,iReserve,iComm,iHotdiscount,iLongdiscount,sLinkname,iCity_id,iOrder,iMax,iOffset,bGroup=false,iPopDirId=0,lsRegionIds=[],iUnrealiable=0){
     def hsSql=[select:'',from:'',where:'',order:''] 
     def hsLong=[:]
     def hsInt=[:]
@@ -53,6 +54,7 @@ class HomeSearchAdmin {
 				((lUserid>0)?' AND user.id =:user_id':'')+
         ((iReserve>0)?' AND client.is_reserve=1':'')+
         ((iComm>0)?' AND home.nref>0':'')+
+        ((iUnrealiable>0)?' AND home.unrealiable>0':'')+
         ((sClient_name!='')?' AND (client.name like CONCAT("%",:client_name) OR client.name like CONCAT(:client_name,"%") OR client.name like CONCAT("%",:client_name,"%"))':'')+
 				((sLinkname!='')?' AND (home.linkname like CONCAT("%",:linkname) OR home.linkname like CONCAT(:linkname,"%") OR home.linkname like CONCAT("%",:linkname,"%"))':'')+
         ((iHotdiscount>0)?' AND 1=IFNULL((select modstatus from homediscount where modstatus=1 and homediscount.id = home.hotdiscount_id),0)':'')+

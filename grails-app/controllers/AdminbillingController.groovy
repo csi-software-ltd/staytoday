@@ -1,11 +1,12 @@
 import grails.converters.*
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import pl.touk.excel.export.WebXlsxExporter
 
 class AdminbillingController {
   
   def requestService
   def billingService
+  def pdfRenderingService
 
   def beforeInterceptor = [action:this.&checkAdmin]
   def static final DATE_FORMAT='yyyy-MM-dd'
@@ -27,7 +28,7 @@ class AdminbillingController {
         session.admin.paytask_notcomplete_count = Paytask.countByModstatus(0)
       }
     }else{
-      redirect(controller:'administrators', action:'index',params:[redir:1], base:(Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(ConfigurationHolder.config.grails.secureServerURL?:ConfigurationHolder.config.grails.serverURL):ConfigurationHolder.config.grails.serverURL))
+      redirect(controller:'administrators', action:'index',params:[redir:1], base:(Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(grailsApplication.config.grails.secureServerURL?:grailsApplication.config.grails.serverURL):grailsApplication.config.grails.serverURL))
       return false;
     }
   }
@@ -562,7 +563,7 @@ class AdminbillingController {
       moddate < (hsRes.reportdate_to?hsRes.reportdate_to+1:new Date()+1)
     }
 
-    renderPdf(template: 'payreportordermoney', model: hsRes, filename: "reportordermoney")
+    render file: pdfRenderingService.render(template: "payreportordermoney", model: hsRes, controller:this).toByteArray(), filename: "reportordermoney", contentType: "application/pdf"
     return
   }
 
@@ -616,9 +617,9 @@ class AdminbillingController {
     hsRes.reportMonth = message(code:'calendar.monthNameP').split(',')[requestService.getIntDef('agentreward_date_month',1)]
     hsRes.reportYear = requestService.getIntDef('agentreward_date_year',2013)
     hsRes.accountData = Accountdata.findByModstatus(1)
-    hsRes.commissionPersent = Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10)
+    hsRes.commissionPersent = Tools.getIntVal(grailsApplication.config.commision.our.percent,10)
 
-    renderPdf(template: 'payreportagentreward', model: hsRes, filename: "reportagentreward")
+    render file: pdfRenderingService.render(template: "payreportagentreward", model: hsRes, controller:this).toByteArray(), filename: "reportagentreward", contentType: "application/pdf"
     return
   }
 
@@ -672,9 +673,9 @@ class AdminbillingController {
     hsRes.reportMonth = message(code:'calendar.monthNameP').split(',')[requestService.getIntDef('agent_date_month',1)]
     hsRes.reportYear = requestService.getIntDef('agent_date_year',2013)
     hsRes.accountData = Accountdata.findByModstatus(1)
-    hsRes.commissionPersent = Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10)
+    hsRes.commissionPersent = Tools.getIntVal(grailsApplication.config.commision.our.percent,10)
 
-    renderPdf(template: 'payreportagent', model: hsRes, filename: "reportagent")
+    render file: pdfRenderingService.render(template: "payreportagent", model: hsRes, controller:this).toByteArray(), filename: "reportagent", contentType: "application/pdf"
     return
   }
 
@@ -726,17 +727,17 @@ class AdminbillingController {
         hsRes.payreports << [orders:orders,comsumma:comsumma,summatotal:summatotal,summafin:summafin,summadealtotal:summadealtotal,saldo:Clientsaldo.findByClient_idAndMdate(clId,hsRes.reportEnd.getTime())?.saldo?:0]
     }
     if (hsRes.payreports.size()==0) {
-      def emptytemplatepath = (ConfigurationHolder.config.xlstemplate.emptyReport.path)?ConfigurationHolder.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
+      def emptytemplatepath = (grailsApplication.config.xlstemplate.emptyReport.path)?grailsApplication.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
       new WebXlsxExporter(emptytemplatepath).with {
         setResponseHeaders(response)
         save(response.outputStream)
       }
     } else {
-      def templatepath = (ConfigurationHolder.config.xlstemplate.reportAgent.path)?ConfigurationHolder.config.xlstemplate.reportAgent.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportAgent.xlsx"
+      def templatepath = (grailsApplication.config.xlstemplate.reportAgent.path)?grailsApplication.config.xlstemplate.reportAgent.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportAgent.xlsx"
       hsRes.reportMonth = message(code:'calendar.monthNameP').split(',')[requestService.getIntDef('agent_date_month',1)]
       hsRes.reportYear = requestService.getIntDef('agent_date_year',2013)
       hsRes.accountData = Accountdata.findByModstatus(1)
-      hsRes.commissionPersent = Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10)
+      hsRes.commissionPersent = Tools.getIntVal(grailsApplication.config.commision.our.percent,10)
       def reportsize = hsRes.payreports[0].orders.size()
       new WebXlsxExporter(templatepath).with {
         setResponseHeaders(response)
@@ -821,20 +822,20 @@ class AdminbillingController {
     hsRes.reportMonth = message(code:'calendar.monthNameP').split(',')[requestService.getIntDef('agentreward_date_month',1)]
     hsRes.reportYear = requestService.getIntDef('agentreward_date_year',2013)
     hsRes.accountData = Accountdata.findByModstatus(1)
-    hsRes.commissionPersent = Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10)
+    hsRes.commissionPersent = Tools.getIntVal(grailsApplication.config.commision.our.percent,10)
 
     if (hsRes.payreports.size()==0) {
-      def emptytemplatepath = (ConfigurationHolder.config.xlstemplate.emptyReport.path)?ConfigurationHolder.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
+      def emptytemplatepath = (grailsApplication.config.xlstemplate.emptyReport.path)?grailsApplication.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
       new WebXlsxExporter(emptytemplatepath).with {
         setResponseHeaders(response)
         save(response.outputStream)
       }
     } else {
-      def templatepath = (ConfigurationHolder.config.xlstemplate.reportAgentReward.path)?ConfigurationHolder.config.xlstemplate.reportAgentReward.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportAgent.xlsx"
+      def templatepath = (grailsApplication.config.xlstemplate.reportAgentReward.path)?grailsApplication.config.xlstemplate.reportAgentReward.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportAgent.xlsx"
       hsRes.reportMonth = message(code:'calendar.monthNameP').split(',')[requestService.getIntDef('agentreward_date_month',1)]
       hsRes.reportYear = requestService.getIntDef('agentreward_date_year',2013)
       hsRes.accountData = Accountdata.findByModstatus(1)
-      hsRes.commissionPersent = Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10)
+      hsRes.commissionPersent = Tools.getIntVal(grailsApplication.config.commision.our.percent,10)
       def reportsize = hsRes.payreports[0].orders.size()
       new WebXlsxExporter(templatepath).with {
         setResponseHeaders(response)
@@ -883,7 +884,7 @@ class AdminbillingController {
     hsRes.comtotal = hsRes.payreport.sum() { Math.round(it.summa*it.persent)/100 }
     hsRes.accountData = Accountdata.findByModstatus(1)
 
-    renderPdf(template: 'payreporttransaction', model: hsRes, filename: "reporttransaction")
+    render file: pdfRenderingService.render(template: "payreporttransaction", model: hsRes, controller:this).toByteArray(), filename: "reporttransaction", contentType: "application/pdf"
     return
   }
 
@@ -908,13 +909,13 @@ class AdminbillingController {
     def payreportWMsize = hsRes.payreportWM.size()
     def payreportsize = hsRes.payreport.size()
     if (payreportsize==0&&payreportWMsize==0) {
-      def emptytemplatepath = (ConfigurationHolder.config.xlstemplate.emptyReport.path)?ConfigurationHolder.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
+      def emptytemplatepath = (grailsApplication.config.xlstemplate.emptyReport.path)?grailsApplication.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
       new WebXlsxExporter(emptytemplatepath).with {
         setResponseHeaders(response)
         save(response.outputStream)
       }
     } else {
-      def templatepath = (ConfigurationHolder.config.xlstemplate.reportTransaction.path)?ConfigurationHolder.config.xlstemplate.reportTransaction.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportTransaction.xlsx"
+      def templatepath = (grailsApplication.config.xlstemplate.reportTransaction.path)?grailsApplication.config.xlstemplate.reportTransaction.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportTransaction.xlsx"
       new WebXlsxExporter(templatepath).with {
         setResponseHeaders(response)
         putCellValue(1, 0, hsRes.accountData.payee)
@@ -957,7 +958,7 @@ class AdminbillingController {
     hsRes.total = hsRes.payreport.sum() { it.summa }
     hsRes.accountData = Accountdata.findByModstatus(1)
 
-    renderPdf(template: 'payreportdeal', model: hsRes, filename: "reportdeal")
+    render file: pdfRenderingService.render(template: "payreportdeal", model: hsRes, controller:this).toByteArray(), filename: "reportdeal", contentType: "application/pdf"
     return
   }
 
@@ -977,13 +978,13 @@ class AdminbillingController {
 
     def payreportsize = hsRes.payreport.size()
     if (payreportsize==0) {
-      def emptytemplatepath = (ConfigurationHolder.config.xlstemplate.emptyReport.path)?ConfigurationHolder.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
+      def emptytemplatepath = (grailsApplication.config.xlstemplate.emptyReport.path)?grailsApplication.config.xlstemplate.emptyReport.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateEmptyReport.xlsx"
       new WebXlsxExporter(emptytemplatepath).with {
         setResponseHeaders(response)
         save(response.outputStream)
       }
     } else {
-      def templatepath = (ConfigurationHolder.config.xlstemplate.reportDeal.path)?ConfigurationHolder.config.xlstemplate.reportDeal.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportDeal.xlsx"
+      def templatepath = (grailsApplication.config.xlstemplate.reportDeal.path)?grailsApplication.config.xlstemplate.reportDeal.path.trim():"d:/project/AR_ARENDA_2.1.2/web-app/xlstemplates/templateReportDeal.xlsx"
       new WebXlsxExporter(templatepath).with {
         setResponseHeaders(response)
         putCellValue(1, 1, hsRes.accountData.payee)

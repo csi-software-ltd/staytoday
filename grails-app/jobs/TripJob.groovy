@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class TripJob {
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.trip.cron!=[:])?ConfigurationHolder.config.trip.cron:"0 0 0 * * ?")
+		cron cronExpression: ((Holders.config.trip.cron!=[:])?Holders.config.trip.cron:"0 0 0 * * ?")
 	}
 
 	def execute() {
@@ -51,7 +50,7 @@ class TripJob {
 		log.debug("LOG>> Trip modstatus was updated succesfully")
 		log.debug("LOG>> Updating payorder modstatus")
 		for(payway in Payway.findAllByModstatus(1)) {
-			def timelife = payway.is_invoice?Tools.getIntVal(ConfigurationHolder.config.payorder.invoicelife.days,7):Tools.getIntVal(ConfigurationHolder.config.payorder.noinvoicelife.days,3)
+			def timelife = payway.is_invoice?Tools.getIntVal(Holders.config.payorder.invoicelife.days,7):Tools.getIntVal(Holders.config.payorder.noinvoicelife.days,3)
 			def tmpOrder = Payorder.findAll("from Payorder where modstatus=0 and payway_id=:payway_id and inputdate<:inputdate",[payway_id:payway.id,inputdate:(today.getTime()-timelife)])
 			tmpOrder.each{
 				try{

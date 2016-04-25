@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class MobileController {
   def requestService
@@ -19,7 +19,7 @@ class MobileController {
     return 
   } 
   def findAreaNearPoint(iX,iY){
-    def iRadius=Tools.getIntVal(ConfigurationHolder.config.mobile.search_near.radius.max,100)//in km
+    def iRadius=Tools.getIntVal(grailsApplication.config.mobile.search_near.radius.max,100)//in km
     def aCoorinates=[]
     aCoorinates<<findCoordByCenterAndRadius(iX,iY,-135, iRadius)
     aCoorinates<<findCoordByCenterAndRadius(iX,iY,45, iRadius)
@@ -48,7 +48,7 @@ class MobileController {
     if(hsRes.inrequest?.date_end?:''){	  
       hsRes.inrequest.date_end=Date.parse(DATE_FORMAT, hsRes.inrequest?.date_end)
     }
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
@@ -57,15 +57,15 @@ class MobileController {
     hsRes.homeperson=Homeperson.list()
     hsRes.homeoption=Homeoption.findAllByFacilitygroup_idAndModstatus(1,1,[sort:'name',order:'asc'])
 
-    hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.search.listing.max,5)	  
-    hsRes.paging_set=Tools.getIntVal(ConfigurationHolder.config.mobile.paging_set,5)	
+    hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.search.listing.max,5)	  
+    hsRes.paging_set=Tools.getIntVal(grailsApplication.config.mobile.paging_set,5)	
     
     hsRes+=searchService._getFilter(requestService)
 
     def bSearchNear=false
     if (hsRes.userPoint.x && hsRes.userPoint.y){
      
-      hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.search_near.max,1000)
+      hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.search_near.max,1000)
       def coordinates=findAreaNearPoint(hsRes.userPoint.x/100000,hsRes.userPoint.y/100000)
       hsRes+=_getMapFilter(hsRes.hsFilter,Math.round(coordinates[0][0]).toLong(),Math.round(coordinates[0][1]).toLong(),Math.round(coordinates[1][0]).toLong(),Math.round(coordinates[1][1]).toLong())
       bSearchNear=true
@@ -84,7 +84,7 @@ class MobileController {
       if(!hsRes.inrequest.sort){
         hsRes.records = oHomeSearch.sortByDistanceFromPoint(hsRes.records, hsRes.userPoint)	
       }
-      hsRes.near_page=Tools.getIntVal(ConfigurationHolder.config.mobile.near.paging,5)
+      hsRes.near_page=Tools.getIntVal(grailsApplication.config.mobile.near.paging,5)
       hsRes.offset=requestService.getOffset()
       hsRes.nextOffset=hsRes.near_page+requestService.getOffset()      
     //paging>>
@@ -183,7 +183,7 @@ class MobileController {
     //<<for discount
     
     def lId=requestService.getLongDef('id',0)	
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto    
+    hsRes.urlphoto = grailsApplication.config.urlphoto    
     hsRes.home = Home.get(lId)	      
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
@@ -247,11 +247,11 @@ class MobileController {
     def oUcommentSearch = new UcommentSearch()
     hsRes+=requestService.getParams([],['home_id','owner_id'])//'u_id',
     
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
 	
     hsRes.owneruser = User.get(hsRes.inrequest?.owner_id)  
-    hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.comments.listing.max,3)
-    hsRes.paging_set=Tools.getIntVal(ConfigurationHolder.config.mobile.paging_set,5)
+    hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.comments.listing.max,3)
+    hsRes.paging_set=Tools.getIntVal(grailsApplication.config.mobile.paging_set,5)
 	
     hsRes+=oUcommentSearch.csiSelectUcommentsForHome(hsRes.inrequest.home_id,hsRes.max,requestService.getOffset()-1)
     hsRes.paging=Paging.computeNavigation(requestService.getOffset(),hsRes.count,hsRes.max,hsRes.paging_set)  
@@ -283,7 +283,7 @@ class MobileController {
         render "${params.jsoncallback}(${hsOut as JSON})"
         return
       }
-      def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+      def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
       if (hsRes.inrequest?.comtext.size()>stringlimit)
         hsRes.inrequest?.comtext = hsRes.inrequest?.comtext.substring(0, stringlimit)
       def oUcomment = new Ucomment()
@@ -364,7 +364,7 @@ class MobileController {
     }
     if (!result.error && hsRes.user && hsRes.inrequest?.com_id) {
       try {
-        def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+        def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
         if (hsRes.inrequest?.answ_comtext.size()>stringlimit) hsRes.inrequest?.answ_comtext = hsRes.inrequest?.answ_comtext.substring(0, stringlimit)
         def oUcomment = new Ucomment()
         oUcomment.user_id = hsRes.user.id
@@ -623,7 +623,7 @@ class MobileController {
           }else
             oMbox=oTmpMbox
 
-          def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+          def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
           if (hsRes.inrequest?.mtext.size()>stringlimit) hsRes.inrequest?.mtext = hsRes.inrequest?.mtext.substring(0, stringlimit)
           if (Tools.getIntVal(Dynconfig.findByName('mbox.noContactMode')?.value,0)?true:false) {
             hsRes.inrequest.mtext = (hsRes.inrequest.mtext?:'').replaceAll('[0-9( )-]{6,}','[номер] ').replaceAll('\\S+@\\S*','[email]').replaceAll('\\S*@\\S+','[email]').trim()
@@ -709,7 +709,7 @@ class MobileController {
                 for(device in lsDevices)
                   lsDevices_ids<<device.device
                 if(lsDevices_ids)
-                  androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //ConfigurationHolder??? 
+                  androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //grailsApplication??? 
               }
               //GCM<<
             }                	                    
@@ -748,10 +748,10 @@ class MobileController {
   }  
   def init(hsRes){   
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + hsTmp.client_id.toString()+'/'
-    hsTmp.homeurl = ConfigurationHolder.config.urlphoto
-    hsTmp.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsTmp.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsTmp.imageurl = grailsApplication.config.urlphoto + hsTmp.client_id.toString()+'/'
+    hsTmp.homeurl = grailsApplication.config.urlphoto
+    hsTmp.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsTmp.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     return hsTmp
   }
   def findClientId(hsRes){    
@@ -772,15 +772,15 @@ class MobileController {
     hsRes+=init(hsRes)   
     
     hsRes.user = User.get(hsRes.user.id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto         
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto         
     hsRes+=requestService.getParams(['ord'],['client'])
     hsRes.inrequest.modstatus=requestService.getIntDef('modstatus',-1)
     hsRes.data=[records:[],count:0]    
     
     if(hsRes.user){
-      hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.inbox_listing.max,5)  	  
-      hsRes.paging_set=Tools.getIntVal(ConfigurationHolder.config.mobile.inbox_listing.paging_set,5)	        	  	
+      hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.inbox_listing.max,5)  	  
+      hsRes.paging_set=Tools.getIntVal(grailsApplication.config.mobile.inbox_listing.paging_set,5)	        	  	
      
       def oMbox=new MboxSearch()	  
       hsRes.data=oMbox.csiGetMbox(hsRes.user?.id?:0,hsRes.inrequest?.client,hsRes.inrequest?.modstatus,hsRes.max,requestService.getOffset()-1,0,hsRes.int?.ord?:0) 
@@ -790,7 +790,7 @@ class MobileController {
       def today = new Date()
       for(def i=0; i<hsRes.data.records.size();i++){
         use(groovy.time.TimeCategory){
-          def duration = hsRes.data.records[i].moddate + Tools.getIntVal(ConfigurationHolder.config.mbox.answertime.hours,4).hours - today
+          def duration = hsRes.data.records[i].moddate + Tools.getIntVal(grailsApplication.config.mbox.answertime.hours,4).hours - today
           def days = duration.days
           def hours = duration.hours
           def minutes = duration.minutes
@@ -878,7 +878,7 @@ class MobileController {
     hsRes.sender=hsRes.recipient=[]    
     
     hsRes.user = User.get(hsRes.user.id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto          
+    hsRes.imageurl = grailsApplication.config.urluserphoto          
     
     def lId=requestService.getLongDef('id',0)
     hsRes.message = Mbox.get(lId)
@@ -909,8 +909,8 @@ class MobileController {
 
       hsRes.data=[records:[],count:0]
 	  
-      hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.msg_listing.max,5)  	  
-      hsRes.paging_set=Tools.getIntVal(ConfigurationHolder.config.mobile.msg_listing.paging_set,5)
+      hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.msg_listing.max,5)  	  
+      hsRes.paging_set=Tools.getIntVal(grailsApplication.config.mobile.msg_listing.paging_set,5)
 	  
       def oMbox=new MboxrecSearch()	  
       hsRes.data=oMbox.csiGetList(hsRes.message?.id,hsRes.message?.user_id,hsRes.sender?.id,hsRes.user.id==hsRes.message.user_id?0:1,hsRes.max,requestService.getOffset()-1)      	  
@@ -929,7 +929,7 @@ class MobileController {
       hsRes.rule_maxday=Rule_maxday.findAll('FROM Rule_maxday')      
       hsRes.answergroup=Answergroup.list()
       hsRes.answertype=Answertype.list()
-      hsRes.isHideContact=Tools.getIntVal(ConfigurationHolder.config.mbox.hideContactMode,1)?true:false
+      hsRes.isHideContact=Tools.getIntVal(grailsApplication.config.mbox.hideContactMode,1)?true:false
       hsRes.iscanoffer = Mboxrec.findAllByMbox_idAndIs_answerAndAnswertype_idInList(hsRes.message?.id?:0,1,[1,2])?false:true
       hsRes.iscandecline = Mboxrec.findAllByMbox_idAndIs_answerAndAnswertype_idGreaterThanAndAdmin_id(hsRes.message?.id?:0,1,0,0)?false:true
       
@@ -946,7 +946,7 @@ class MobileController {
       hsRes.ispaypossible = (Client.get(hsRes.message.homeowner_cl_id)?.resstatus==1)
       hsRes.resstatModifier = 1.0
       if (hsRes.ispaypossible)
-        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
       
       hsRes.displayPrice = Math.round(hsRes.message?.price_rub * hsRes.resstatModifier / hsRes.valutaRates)      
       hsRes.reserve = Reserve.get(hsRes.ownerClient?.reserve_id?:0)
@@ -1018,7 +1018,7 @@ class MobileController {
       }else
         flash.error=1
 	
-      hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)	
+      hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)	
       if ((hsRes.inrequest?.message?:'').size()>hsRes.textlimit)
         hsRes.inrequest?.message = hsRes.inrequest?.message.substring(0, hsRes.textlimit)
 		
@@ -1142,18 +1142,18 @@ class MobileController {
         if(oMbox.is_answer){//from owner
           hsRes.resstatModifier = 1.0
           if (Client.get(oMbox.homeowner_cl_id)?.resstatus==1) {
-            hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+            hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
           }
           def oAnswertype=Answertype.get(hsRes.inrequest.answertype_id)
           if(hsRes.inrequest.answertype_id==6){
-            sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
+            sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
             .replace('[@ANSWER_TYPE_SHORTNAME]',oAnswertype?.shortname?:'')
             .replace('[@TEXT]',hsRes.inrequest.message?:'')		  
-            sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
-            sText=sText.replace('[@URL]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">ссылке</a>") 
+            sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
+            sText=sText.replace('[@URL]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">ссылке</a>") 
           }else if(hsRes.inrequest.answertype_id==2){
             sText=sText.replace('[@NICKNAME]',sNickname)
-            .replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
+            .replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
             .replace('[@SPEC_DATE_START]',String.format('%tY-%<tm-%<td',oMboxrec.date_start))
             .replace('[@SPEC_DATE_END]',String.format('%tY-%<tm-%<td',oMboxrec.date_end))
             .replace('[@SPEC_HOMEPERSON]',Homeperson.get(oMboxrec.homeperson_id)?.name?:'')
@@ -1161,38 +1161,38 @@ class MobileController {
             .replace('[@SPEC_VALUTA]',Valuta.get(oMboxrec.valuta_id?:0).code)
             .replace('[@COMMENTS]',oMboxrec.rectext?:'')
           }else if(hsRes.inrequest.answertype_id==1){
-            sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
+            sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
             .replace('[@ANSWER_TYPE_SHORTNAME]',oAnswertype?.shortname?:'')
 			      .replace('[@TEXT]',hsRes.inrequest.message?:'')//TODO!!		  
-            sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
-            sText=sText.replace('[@URL]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
+            sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
+            sText=sText.replace('[@URL]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
           }else if(hsRes.inrequest.answertype_id==3 || hsRes.inrequest.answertype_id==5){
-		        sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")			
+		        sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")			
             .replace('[@ANSWER_TYPE_SHORTNAME]',oAnswertype?.shortname?:'')
 			      .replace('[@TEXT]',hsRes.inrequest.message?:'')//TODO!!            		
-            sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
-            sText=sText.replace('[@URL]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
+            sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
+            sText=sText.replace('[@URL]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
           }else if(hsRes.inrequest.answertype_id==4){
-		        sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")			
+		        sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")			
 			      .replace('[@MIN_DAY]',Rule_minday.get(hsRes.inrequest.rule_minday_id?:0)?.name?:'')	
 			      .replace('[@MAX_DAY]',Rule_maxday.get(hsRes.inrequest.rule_maxday_id?:0)?.name?:'')
 			      .replace('[@ANSWER_TYPE_SHORTNAME]',oAnswertype?.shortname?:'')
             .replace('[@TEXT]',hsRes.inrequest.message?:'')//TODO!!		  
-            sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
-            sText=sText.replace('[@URL]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
+            sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
+            sText=sText.replace('[@URL]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 
           }		  
         }else{//from client
-          sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
+          sText=sText.replace('[@NICKNAME]',sNickname).replace('[@HOME]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/home/view/'+oHome.linkname+">"+oHome.name+"</a>")
           .replace('[@TEXT]',hsRes.inrequest.message?:'')		  
-          sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
-          sText=sText.replace('[@URL]',"<a href="+ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 		  
+          sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
+          sText=sText.replace('[@URL]',"<a href="+grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/inbox/view/'+oMbox.id+">СЃСЃС‹Р»РєРµ</a>") 		  
         }
         sText+=mailerService.mail_history(oMbox.id,oMboxrec.id,oHome.name)			
         sHeader=sHeader.replace('[@HOME]',oHome.name)
         
         try{ 
-          if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-             mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,sMailTo,sHeader,1)        
+          if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+             mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,sMailTo,sHeader,1)        
           else{ 
             sendMail{
               to sMailTo         
@@ -1251,7 +1251,7 @@ class MobileController {
       for(device in lsDevices)
         lsDevices_ids<<device.device
       if(lsDevices_ids)
-        androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //ConfigurationHolder??? 
+        androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //grailsApplication??? 
     }
 //GCM<<  
     }
@@ -1332,7 +1332,7 @@ class MobileController {
         hsRes.inrequest.message = (hsRes.inrequest.message?:'').replaceAll('[0-9( )-]{7,}',' [номер] ').replaceAll('\\S+@\\S*','[email]').replaceAll('\\S*@\\S+','[email]').trim()
       }
     }
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
     if ((hsRes.inrequest?.message?:'').size()>hsRes.textlimit)
       hsRes.inrequest?.message = hsRes.inrequest?.message.substring(0, hsRes.textlimit)
     
@@ -1443,13 +1443,13 @@ class MobileController {
     requestService.init(this)  
     def hsRes=requestService.getContextAndDictionary(false) 
     if (!checkUser(hsRes)) return
-    //hsRes.urlphoto = ConfigurationHolder.config.urlphoto         
+    //hsRes.urlphoto = grailsApplication.config.urlphoto         
     hsRes+=init(hsRes) 
     def lMboxId=requestService.getLongDef('mbox_id',0)
     def lId=requestService.getLongDef('id',0)	
     Long lSocId = 0   
     
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     
     hsRes.mbox=Mbox.findByIdAndUser_idInList(lMboxId,[lSocId,hsRes.user.id])
 	  hsRes.mboxRec=Mboxrec.findWhere(id:lId,mbox_id:hsRes.mbox?.id)
@@ -1614,8 +1614,8 @@ class MobileController {
     if (!checkUser(hsRes)) return
     hsRes.inrequest=[:]
     hsRes.count=0
-    hsRes.max=Tools.getIntVal(ConfigurationHolder.config.mobile.search.listing.max,30)
-	  hsRes.paging_set=Tools.getIntVal(ConfigurationHolder.config.mobile.paging_set,5)
+    hsRes.max=Tools.getIntVal(grailsApplication.config.mobile.search.listing.max,30)
+	  hsRes.paging_set=Tools.getIntVal(grailsApplication.config.mobile.paging_set,5)
     if(hsRes.wallet){    	
       hsRes.modstatus=Homemodstatus.list()
       hsRes.hometype=Hometype.list([sort:'id',order:'asc']) 
@@ -1632,7 +1632,7 @@ class MobileController {
         }
         i++
       }
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto   
+      hsRes.urlphoto = grailsApplication.config.urlphoto   
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol      	  
@@ -1698,7 +1698,7 @@ class MobileController {
       flash.error<<3	
     if((hsRes.inrequest?.password1?:'')!=(hsRes.inrequest?.password2?:''))
       flash.error<<4
-    if((hsRes.inrequest?.password2?:'').size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength?:5))
+    if((hsRes.inrequest?.password2?:'').size()<Tools.getIntVal(grailsApplication.config.user.passwordlength?:5))
       flash.error<<5	
 	
     if(!(flash.error?:[]).size()){  
@@ -1788,15 +1788,15 @@ class MobileController {
           sText=sText.replace(
           '[@NICKNAME]',hsRes.inrequest.nickname?:'').replace(
           '[@EMAIL]',hsRes.inrequest.email).replace(
-          '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+sCode))
-          sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+          '[@URL]',(grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+sCode))
+          sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
           sHeader=sHeader.replace(
           '[@EMAIL]',hsRes.inrequest.email).replace(
-          '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+'/user/confirm/'+sCode))
+          '[@URL]',(grailsApplication.config.grails.mailServerURL+'/user/confirm/'+sCode))
 
           try{ 
-            if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-             mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,hsRes.inrequest.email,sHeader,1)        
+            if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+             mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,hsRes.inrequest.email,sHeader,1)        
             else{
               sendMail{
                 to hsRes.inrequest.email        
@@ -1878,15 +1878,15 @@ class MobileController {
         sText=sText.replace(
         '[@NICKNAME]',oUser.nickname).replace(
         '[@EMAIL]',hsRes.inrequest.name).replace(
-        '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/passwconfirm/'+sCode))
-        sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+        '[@URL]',(grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/passwconfirm/'+sCode))
+        sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
         sHeader=sHeader.replace(
         '[@EMAIL]',hsRes.inrequest.name).replace(
-        '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+'/user/passwconfirm/'+sCode))
+        '[@URL]',(grailsApplication.config.grails.mailServerURL+'/user/passwconfirm/'+sCode))
 
         try{ 
-          if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-             mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,hsRes.inrequest.name,sHeader,1)        
+          if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+             mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,hsRes.inrequest.name,sHeader,1)        
           else{
           sendMail{
             to hsRes.inrequest.name        
@@ -1915,7 +1915,7 @@ class MobileController {
     if(sName?:''){
       hsRes.records=Popkeywords.findAll('FROM Popkeywords WHERE name like :name ORDER BY rating DESC',[name:sName+'%'])         
       if((hsRes.records?:[]).size()){
-        def iMax=(Tools.getIntVal(ConfigurationHolder.config.mobile.search.where_auto_complete.max,3)>=hsRes.records.size())?hsRes.records.size()-1:Tools.getIntVal(ConfigurationHolder.config.mobile.search.where_auto_complete.max,3)       
+        def iMax=(Tools.getIntVal(grailsApplication.config.mobile.search.where_auto_complete.max,3)>=hsRes.records.size())?hsRes.records.size()-1:Tools.getIntVal(grailsApplication.config.mobile.search.where_auto_complete.max,3)       
         hsRes.records=hsRes.records[0..iMax]
       }
     }	

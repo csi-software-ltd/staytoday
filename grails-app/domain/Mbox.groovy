@@ -46,14 +46,25 @@ class Mbox {
   Date moddate
   Date lastusermessagedate = new Date()
   Long zayvka_id = 0
+  Integer rating = 0
   Integer controlstatus = 0
   Long responsetime = 0
+  String outer_id = ''
 //////////////////////////////////////////////////////////////////
+  def beforeInsert() {
+    rating = Tools.getIntVal(Dynconfig.findByName('mbox.rating.mb_penalty')?.value,-10)
+  }
 
   Mbox adminread(){
     is_adminread = 1
     save(flush:true)
   }
+
+  Mbox updateRating(iValue){
+    rating = iValue?:0
+    this
+  }
+
   Mbox commentadd(sText){
     comment = sText?:''
     this

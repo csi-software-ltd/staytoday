@@ -1,15 +1,14 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class TripConfirmControlJob {
 	def billingService
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.tripConfirmControl.cron!=[:])?ConfigurationHolder.config.tripConfirmControl.cron:"0 17 2/3 * * ?")
+		cron cronExpression: ((Holders.config.tripConfirmControl.cron!=[:])?Holders.config.tripConfirmControl.cron:"0 17 2/3 * * ?")
 	}
 
 	def execute() {
 		log.debug("LOG>> TripConfirmControlJob: start")
-		def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+		def oAdmin = Admin.get(Tools.getIntVal(Holders.config.notifyAdmin.id,2))
 		def now = new Date()
 		def lsTrip = Trip.findAllByFromdateLessThanEqualsAndControlstatusInList(now,[0,1])
 		lsTrip.each{
@@ -23,11 +22,11 @@ class TripConfirmControlJob {
 				log.debug("Error on updating controlstatus (fromdate) for Trip - id:"+it.id+"\n"+e.toString())
 			}
 		}
-		lsTrip = Trip.findAllByInputdateLessThanEqualsAndControlstatus(new Date(now.getTime()-1000*60*60*Tools.getIntVal(ConfigurationHolder.config.trip.noconfirm.hours,24)),0)
+		lsTrip = Trip.findAllByInputdateLessThanEqualsAndControlstatus(new Date(now.getTime()-1000*60*60*Tools.getIntVal(Holders.config.trip.noconfirm.hours,24)),0)
 		lsTrip.each{
 			try{
 				if (oAdmin?.email)
-					(new Zayavkabyemail(oAdmin.email,oAdmin.name,Payorder.get(it.payorder_id)?.norder?:'',Tools.getIntVal(ConfigurationHolder.config.trip.noconfirm.hours,24).toString(),it.fromdate,it.todate,'#noConfirmDailyTripNotice')).save(flush:true)
+					(new Zayavkabyemail(oAdmin.email,oAdmin.name,Payorder.get(it.payorder_id)?.norder?:'',Tools.getIntVal(Holders.config.trip.noconfirm.hours,24).toString(),it.fromdate,it.todate,'#noConfirmDailyTripNotice')).save(flush:true)
 				it.controlstatus = 1
 				it.is_read = 0
 				it.save(flush:true)

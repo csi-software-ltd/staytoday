@@ -25,6 +25,7 @@
         <th>Тип</th>
         <th>Страна</th>
         <th>Статус</th>
+        <th>Партнерка</th>
       </tr>
     <g:each in="${records}" status="i" var="record">
       <tr id="tr+${i}">
@@ -36,6 +37,7 @@
         <td>${record.type_id==1?'Физ. лицо':record.type_id==2?'Юр. лицо':'не задано'}</td>
         <td>${record.countryname}</td>
         <td>${record?.resstatus==1?'схема подтверждена':record?.resstatus==-1?'схема отклонена':record?.resstatus==2?'запрос на подключение':record?.resstatus==3?'запрос на изменение':'схема не подключена'}</td>
+        <td>${record?.partnerstatus==0?'партнерка не подключена':record?.partnerstatus==2?'партнерка подключена':'запрос на подключение'}</td>
       </tr>
     </g:each>
     </table>

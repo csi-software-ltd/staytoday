@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
 grails.mime.file.extensions = true // enables the parsing of file extensions from URLs into the request format
 grails.mime.use.accept.header = false
@@ -28,6 +28,7 @@ grails.resources.adhoc.excludes = ['/plugins/fckeditor-0.9.5/js/fckeditor/editor
 grails.resources.mappers.hashandcache.excludes = ['/js/links/link.js','/fonts/arial.ttf']
 
 grails.profiler.disable = true
+grails.databinding.convertEmptyStringsToNull = false
 
 grails {
    mail {     

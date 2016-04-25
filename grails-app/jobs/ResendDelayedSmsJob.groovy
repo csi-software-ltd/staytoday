@@ -1,10 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class ResendDelayedSmsJob {
 	def smsService
 	static triggers = {
 		//simple repeatInterval: 200000 // execute job once in 200 seconds
-		cron cronExpression: ((ConfigurationHolder.config.resendDelayedSms.cron!=[:])?ConfigurationHolder.config.resendDelayedSms.cron:"0 0 0-12 * * ?")
+		cron cronExpression: ((Holders.config.resendDelayedSms.cron!=[:])?Holders.config.resendDelayedSms.cron:"0 0 0-12 * * ?")
 	}
 
 	def execute() {
@@ -12,7 +11,7 @@ class ResendDelayedSmsJob {
 		def lsDelayed = DelayedSMS.findAllByModstatus(0)
 		def curHour = (new Date()).getHours()
 		lsDelayed.each{
-			if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.start,8)<=((curHour+(Region.get(it.region_id)?.timediff?:0)+24)%24)&&((curHour+(Region.get(it.region_id)?.timediff?:0)+24)%24)<Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.end,22)) {
+			if (Tools.getIntVal(Holders.config.noticeSMS.daytime.start,8)<=((curHour+(Region.get(it.region_id)?.timediff?:0)+24)%24)&&((curHour+(Region.get(it.region_id)?.timediff?:0)+24)%24)<Tools.getIntVal(Holders.config.noticeSMS.daytime.end,22)) {
 				try {
 					switch(it.type) {
 						case 0:

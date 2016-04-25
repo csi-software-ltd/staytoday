@@ -1,11 +1,6 @@
 class Paytrans {
+  static mapping = { version false }
 
-  static constraints = {
-  }
-  static mapping = {
-    //datasource 'admin'
-    version false
-  }
   Long id
   String agrcode = ''
   String agrdate = ''

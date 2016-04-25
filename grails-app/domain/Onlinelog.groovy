@@ -1,15 +1,13 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class Onlinelog {
   def searchService
-  static mapping = {
-    version false
-  }  
+
+  static mapping = { version false }
 
   static constraints = {
-    reference (nullable:true)	   
+    reference (nullable:true)
   }
-  
+
   String page
   Integer type
   Long reccount
@@ -40,8 +38,8 @@ class Onlinelog {
     " and useragent not like '%aportworm%' and useragent not like '%Mail.Ru/1.0%' "+
     " and useragent not like '%searchbot%'"
     hsSql.group="userip having count(*)>:spy_max"
-	hsLong['spy_max']=Tools.getIntVal(ConfigurationHolder.config.spy_max,500)
-	hsLong['period_in_minuts']=(Tools.getIntVal(ConfigurationHolder.config.spy_timeout,300000)/60000).toInteger()
+	hsLong['spy_max']=Tools.getIntVal(Holders.config.spy_max,500)
+	hsLong['period_in_minuts']=(Tools.getIntVal(Holders.config.spy_timeout,300000)/60000).toInteger()
     return searchService.fetchData(hsSql,hsLong,null,null,null)    
   }  
 }

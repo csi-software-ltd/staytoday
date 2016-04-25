@@ -1,6 +1,6 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class BannersService {
-  
+  def grailsApplication
   static boolean transactional = false
   static scope = "request"
   
@@ -27,7 +27,7 @@ class BannersService {
         oAdvbanner.updateShowBanners(lsIds)
 	  } 
 	}
-	hsRes.url=ConfigurationHolder.config.urlphoto+'ar_banners/' 
+	hsRes.url=grailsApplication.config.urlphoto+'ar_banners/' 
 	return hsRes
   }    
  

@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 
 class UsersService implements Serializable{
   static boolean transactional = false
@@ -8,6 +8,7 @@ class UsersService implements Serializable{
   static final INTERNALPROVIDER='staytoday' //NOTE: lowercase
   static final COOKIENAME='user'
   private static final long serialVersionUID = 1L;
+  def grailsApplication
   
   static getOpenIdUrl(sUser,sProvider){
     sUser=sUser.toLowerCase()
@@ -45,14 +46,14 @@ class UsersService implements Serializable{
       return
     def oSession=new Usession()
     def sGuid=oSession.createSession(m_hsUser.id)	
-    requestService.setCookie(COOKIENAME,sGuid,iRemember?Tools.getIntVal(ConfigurationHolder.config.user.remembertime,2592000):-1)
+    requestService.setCookie(COOKIENAME,sGuid,iRemember?Tools.getIntVal(grailsApplication.config.user.remembertime,2592000):-1)
   }
   ///////////////////////////////////////////////////////////////////
   def deleteSession(requestService){ 
     def oSession=new Usession()
     def sGuid=requestService.getCookie(COOKIENAME)	
     oSession.deleteSession(sGuid)
-    requestService.setCookie(COOKIENAME,'',Tools.getIntVal(ConfigurationHolder.config.user.timeout,259200))
+    requestService.setCookie(COOKIENAME,'',Tools.getIntVal(grailsApplication.config.user.timeout,259200))
     m_hsUser=null    
   }
  ///////////////////////////////////////////////////////////////////
@@ -160,6 +161,6 @@ class UsersService implements Serializable{
   ///////////////////////////////////////////////////////////////////
   //def clearUserRegistraions(){ <---- moved into job since service has session scope
   //  def oTempusers=new Tempusers()
-  //  oTempusers.clearOldRegistrations(Tools.getIntVal(ConfigurationHolder.config.user.registrationtimelive))
+  //  oTempusers.clearOldRegistrations(Tools.getIntVal(grailsApplication.config.user.registrationtimelive))
   // }
 }

@@ -1,9 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class CitySightJob {
   def searchService
 	static triggers = {		
     //simple startDelay:10000, repeatInterval: 10000, repeatCount: 0
-		cron cronExpression: ((ConfigurationHolder.config.citysight.cron!=[:])?ConfigurationHolder.config.citysight.cron:"0 15 3 * * ?")
+		cron cronExpression: ((Holders.config.citysight.cron!=[:])?Holders.config.citysight.cron:"0 15 3 * * ?")
 	}
 
   def execute() {

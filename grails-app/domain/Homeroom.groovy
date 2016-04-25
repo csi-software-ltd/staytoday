@@ -15,5 +15,6 @@ class Homeroom {
   String name3_en
   String name4
   String name5
+  String name6
   Integer kol
 }

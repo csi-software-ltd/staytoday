@@ -41,12 +41,15 @@
     <meta name="layout" content="main" />
     <g:javascript library="jquery-1.8.3" />
     <g:javascript library="list" />
-    <calendar:resources lang="${context?.lang?'en':'ru'}" theme="tiger"/>    
+    <calendar:resources lang="${context?.lang?'en':'ru'}" theme="tiger"/>
+    <script type="text/javascript">
+      var lsHomes = new Array();
+    </script>
     <g:javascript>       
     var opened_popdirection=0, mouseOnDir=0,
       iX=${inrequest?.x?:(option?.x?:3700000)}, iY=${inrequest?.y?:(option?.y?:5500000)},
       iScale=${inrequest?.zoom?:3}, MAX_MAP_ZOOM=15, MAX_MAP_ZOOM_DEF=23,
-      map=null, HMap=[], placemark={}, oSlider={}, gBounds=null, lsHomes=new Array(), citysightPlacemarkMap = {};
+      map=null, HMap=[], placemark={}, oSlider={}, gBounds=null, citysightPlacemarkMap = {};
     function initialize(iVar){      
       new Autocomplete('where', { serviceUrl:'${resource(dir:"home",file:"where_autocomplete")}' }); 
       if(!iVar)      
@@ -156,7 +159,7 @@
       oSlider=new Control.Slider(slider.select('.ui-slider-handle'), slider, {            
         range: $R(${valuta?.min?:100}, ${valuta?.max?:5000}),
         sliderValue:[${inrequest?.price_min?:(valuta?.min?:100)}, ${inrequest?.price_max?:(valuta?.max?:5000)}],
-        values: ${arr},        
+        values: [<g:join in="${arr}" delimiter=", "/>],
         step: ${valuta?.step?:100},
         spans: ["slider_span"],
         restricted: true,

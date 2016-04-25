@@ -84,6 +84,12 @@
         $("pcard_div").hide();
       }  
     }
+    function confirmPartner(){
+      <g:remoteFunction controller='administrators' action='setpartnerstatus' id="${client?.id?:0}" onSuccess='location.reload(true)' params="'status=2'" />
+    }
+    function declinePartner(){
+      <g:remoteFunction controller='administrators' action='setpartnerstatus' id="${client?.id?:0}" onSuccess='location.reload(true)' params="'status=-1'" />
+    }
 	</g:javascript>
   <style type="text/css">    
     .dotted td, .dotted th { padding: 10px 3px !important; font-size: 11px !important; line-height: 12px !important }
@@ -136,19 +142,32 @@
                     <input type="text" disabled value="${client?.ip?:''}" style="width:140px" />
                   </span>&nbsp;&nbsp;
                   <span nowrap>
-                    статус: &nbsp; <b id="status"></b>  
-                    <g:javascript>
-                      var color, status;
-                      switch(${client?.resstatus?:0}){
-                        case  1: color='green'; status='подтверждена'; break;
-                        case -1: color='red'; status='отклонена'; break;
-                        case  2: color='gray'; status='запрос на подключение'; break;
-                        case  3: color='gray'; status='запрос на изменение'; break;
-                        default: color='red'; status='не подключена';
-                      }                                
-                      $("status").update('<font color="'+color+'">'+status+'</font>');
-                    </g:javascript>                                                                             
-                  </span>                  
+                    партнерка: &nbsp; <b id="pstatus"><font color="${client?.partnerstatus in [0,-1]?'red':client?.partnerstatus==2?'green':'gray'}">${client?.partnerstatus==0?'не подключена':client?.partnerstatus==2?'подтверждена':client?.partnerstatus==1?'запрос на подключение':'отклонена'}</font></b>
+                  <g:if test="${client.partnerway_id!=1&&client.partnerstatus!=0}">
+                    <ul class="verifications-list col" style="float:right">
+                    <g:if test="${client.partnerstatus!=2}">
+                      <li class="verifications-list-item" style="padding:0;cursor:pointer" title="подтвердить" onclick="confirmPartner()">
+                        <div class="verifications-icon"></div>
+                      </li>
+                    </g:if>
+                    <g:if test="${client.partnerstatus!=-1}">
+                      <li class="verifications-list-item" style="padding:0;cursor:pointer" title="отклонить" onclick="declinePartner()">
+                        <div class="verifications-icon decline"></div>
+                      </li>
+                    </g:if>
+                    </ul>
+                  </g:if>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label for="partnerway_id">Схема партнерки:&nbsp;&nbsp;</label>
+                  <g:select name="partnerway_id" from="${Partnerway.list()}" value="${client?.partnerway_id}" noSelection="${[0:'не задана']}" optionKey="id" optionValue="name" disabled="true"/>
+                </td>
+                <td colspan="2">
+                  <label for="prequisite">Реквизиты:</label>
+                  <input type="text" id="prequisite" value="${client?.prequisite}" style="width:85%!important" />
                 </td>
               </tr>
               <tr>
@@ -161,7 +180,7 @@
                   <g:select name="payaccount_id" from="${paycountry}" value="${client?.payaccount_id?:0}" optionKey="payaccount_id" optionValue="${{Payaccount.get(it.payaccount_id).name}}" style="width:175px" onchange="setPayaccount(this.value)"/>
                 </td>
                 <td>
-                  <div id="webmoney_div" <g:if test="${(client?.payaccount_id?:0)!=3}">style="display:none"</g:if>>                
+                  <div id="webmoney_div" <g:if test="${(client?.payaccount_id?:0)!=3}">style="display:none"</g:if>>
                     <label for="webmoney">Номер кошелька:</label>
                     <input type="text" name="webmoney" value="${client?.webmoney?:''}"/>
                   </div>                
@@ -172,9 +191,23 @@
                   <label for="type_id">Тип:</label>
                   <g:select name="type_id" from="${['Физ. лицо','Юр. лицо','Предприниматель']}" value="${client?.type_id?:0}" keys="${1..3}" onchange="setForm(this.value);"/>
                 </td>
-                <td colspan="2">                
+                <td colspan="2">
                   <label for="reserve_id">Схема бронирования:</label>
-                  <g:select name="reserve_id" from="${reserve}" value="${client?.reserve_id?:0}" noSelection="${[0:'не задана']}" optionKey="id" optionValue="name" />
+                  <g:select name="reserve_id" from="${reserve}" value="${client?.reserve_id?:0}" noSelection="${[0:'не задана']}" optionKey="id" optionValue="name" />&nbsp;&nbsp;
+                  <span nowrap>
+                    статус: &nbsp; <b id="status"></b>  
+                    <g:javascript>
+                      var color, status;
+                      switch(${client?.resstatus?:0}){
+                        case  1: color='green'; status='подтверждена'; break;
+                        case -1: color='red'; status='отклонена'; break;
+                        case  2: color='gray'; status='запрос на подключение'; break;
+                        case  3: color='gray'; status='запрос на изменение'; break;
+                        default: color='red'; status='не подключена';
+                      }                                
+                      $("status").update('<font color="'+color+'">'+status+'</font>');
+                    </g:javascript>                                                                             
+                  </span>
                 </td>
               </tr>
               <tr>

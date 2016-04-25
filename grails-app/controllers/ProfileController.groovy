@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 import java.util.regex.*
 class ProfileController {
@@ -18,9 +18,9 @@ class ProfileController {
   }
   def init(hsRes){   
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + 'user/'
-	  hsTmp.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-	  hsTmp.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsTmp.imageurl = grailsApplication.config.urlphoto + 'user/'
+	  hsTmp.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+	  hsTmp.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     hsTmp.user = User.read(hsRes.user?.id)
     
     if(hsRes.context.lang){      
@@ -76,7 +76,7 @@ class ProfileController {
   def edit={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true)
-	if (!checkUser(hsRes)) return
+    if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
     hsRes+=getVerifyStatus(hsRes)
     def bSave=requestService.getLongDef('save',0)
@@ -102,6 +102,7 @@ class ProfileController {
       hsRes.kod1 = requestService.getStr('kod1')
     }
     hsRes.gmt=Gmt.findAll('FROM Gmt ORDER BY id')
+    hsRes.client = Client.get(hsRes.client_id)
     requestService.setStatistic('editprofile',14)
     return hsRes
   }
@@ -111,7 +112,7 @@ class ProfileController {
     def hsRes=requestService.getContextAndDictionary(false,true,true)
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
-    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,ConfigurationHolder.config.pathtophoto+'user'+File.separatorChar) // 0
+    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,grailsApplication.config.pathtophoto+'user'+File.separatorChar) // 0
     imageService.startFileSession() // 1
     hsRes.images=[:]
     if((hsRes.user.picture?:'')!='')
@@ -133,19 +134,19 @@ class ProfileController {
 	if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
 
-    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,ConfigurationHolder.config.pathtophoto+'user'+File.separatorChar,"images","alpha2.jpg","mask.jpg") // 0
+    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,grailsApplication.config.pathtophoto+'user'+File.separatorChar,"images","alpha2.jpg","mask.jpg") // 0
     def iNo=1    	
 	
     //ЗАГРУЖАЕМ ГРАФИКУ
     def hsData= imageService.loadPicture(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-      Tools.getIntVal(ConfigurationHolder.config.userphoto.image.size,210),  // size
-      Tools.getIntVal(ConfigurationHolder.config.userphoto.thumb.size,50), //thumb size
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.userphoto.image.size,210),  // size
+      Tools.getIntVal(grailsApplication.config.userphoto.thumb.size,50), //thumb size
       true,//SaveThumb
       false,//square		
-      Tools.getIntVal(ConfigurationHolder.config.userphoto.image.height,210),//height
-      Tools.getIntVal(ConfigurationHolder.config.userphoto.thumb.height,50),//thumb height			
+      Tools.getIntVal(grailsApplication.config.userphoto.image.height,210),//height
+      Tools.getIntVal(grailsApplication.config.userphoto.thumb.height,50),//thumb height			
       true,
       false
 		) // 3
@@ -170,7 +171,7 @@ class ProfileController {
 	if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
     //ОБЯЗАТЕЛЬНАЯ ИНИЦИАЛИЗАЦИЯ TODO: path into cfg
-    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,ConfigurationHolder.config.pathtophoto+'user'+File.separatorChar)
+    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,grailsApplication.config.pathtophoto+'user'+File.separatorChar)
     
     def sName=requestService.getStr("name")
 
@@ -184,7 +185,7 @@ class ProfileController {
 	if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
 	      
-    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,ConfigurationHolder.config.pathtophoto+'user'+File.separatorChar) // 0
+    imageService.init(this,'userphotopic'+hsRes.user.id,'userphotokeeppic'+hsRes.user.id,grailsApplication.config.pathtophoto+'user'+File.separatorChar) // 0
     def hsPics=imageService.getSessionPics('file1')
     if((hsRes.user.picture?:'')!=''&&!hsPics)
       imageService.putIntoSessionFromDb(hsRes.user.picture,'file1') // 2
@@ -208,7 +209,7 @@ class ProfileController {
 	if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
 
-    imageService.init(this,'','',ConfigurationHolder.config.pathtophoto+'user'+File.separatorChar)    
+    imageService.init(this,'','',grailsApplication.config.pathtophoto+'user'+File.separatorChar)    
     def lsPictures = []
     lsPictures<<hsRes.user.picture
     hsRes.user.picture=''
@@ -235,7 +236,7 @@ class ProfileController {
       
     if(sPassword2!=sPassword1)
       flash.error<<1
-    else if(sPassword2.size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5))
+    else if(sPassword2.size()<Tools.getIntVal(grailsApplication.config.user.passwordlength,5))
       flash.error<<2
     else  {
       hsRes.user.password=Tools.hidePsw(sPassword2)
@@ -359,15 +360,15 @@ class ProfileController {
       sText=sText.replace(
       '[@NICKNAME]',hsRes.user.nickname).replace(
       '[@EMAIL]',hsRes.user.email).replace(
-      '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+hsRes.user.code))
-      sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+      '[@URL]',(grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+hsRes.user.code))
+      sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
       sHeader=sHeader.replace(
       '[@EMAIL]',hsRes.user.email).replace(
-      '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+'/user/confirm/'+hsRes.user.code))
+      '[@URL]',(grailsApplication.config.grails.mailServerURL+'/user/confirm/'+hsRes.user.code))
 
       try{ 
-        if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-          mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,hsRes.user.email,sHeader,1)        
+        if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+          mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,hsRes.user.email,sHeader,1)        
         else{
         sendMail{
           to hsRes.user.email         
@@ -401,7 +402,7 @@ class ProfileController {
 	hsRes.user = User.get(hsRes.user?.id)
 	hsRes.isSMSsend = Sms.isSMSsend(hsRes.user?.tel?:'')
 	hsRes+=requestService.getParams([],[],['sendmail'])
-	hsRes.maxerror = Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)
+	hsRes.maxerror = Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)
 	if (hsRes.inrequest.sendmail
 	  && hsRes.verifyStatus==2) {
 		if (!hsRes.user.code) {
@@ -445,7 +446,7 @@ class ProfileController {
 		return
 
 	hsRes.user = User.get(hsRes.user.id)
-	if(session.user_enter_fail>Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)){
+	if(session.user_enter_fail>Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)){
 		render (["error":true,"fail_count":session.user_enter_fail] as JSON)
 		return
 	}
@@ -484,8 +485,8 @@ class ProfileController {
       response.sendError(404)
       return
     }
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
     hsRes.verify = [:]
     def modSt = 0
     if ((hsRes.user?.id == hsRes.viewedUser.id)||(session?.admin?.id!=null))
@@ -499,7 +500,7 @@ class ProfileController {
       def oHome=new Home()
       hsRes.data=oHome.csiGetHome(hsRes.viewedUser.client_id,modSt,120,0)                  
       hsRes.modstatus=Homemodstatus.list()
-      hsRes.photourl = ConfigurationHolder.config.urlphoto + hsRes.viewedUser.client_id.toString()+'/'    
+      hsRes.photourl = grailsApplication.config.urlphoto + hsRes.viewedUser.client_id.toString()+'/'    
       hsRes.ownerClient = Client.get(hsRes.viewedUser.client_id)
       hsRes.payway=Payway.findAllByModstatusAndIs_invoice(1,0)
       hsRes.goodComments=oUcommentSearch.csiSelectUcommentsForMyHomes(hsRes.viewedUser.client_id?:0,2,1,requestService.getOffset())
@@ -534,7 +535,7 @@ class ProfileController {
     hsRes+=requestService.getParams([],['client_id','u_id'])
 
     def oUcommentSearch = new UcommentSearch()
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     hsRes.comments=oUcommentSearch.csiSelectUcommentsForMyHomes(hsRes.inrequest.client_id?:0,-1,20,requestService.getOffset())
     hsRes.answerComments=hsRes.comments.records.collect {Ucomment.findAllByRefcomment_id(it.id)}
     hsRes.owneruser = User.findByClient_id(hsRes.inrequest?.client_id?:(0 as long))
@@ -547,7 +548,7 @@ class ProfileController {
     hsRes+=requestService.getParams([],['lId','u_id'])
 
     def oUcommentSearch = new UcommentSearch()
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     hsRes.myComments = oUcommentSearch.csiSelectMyUcomments(hsRes.inrequest.lId?:0,20,requestService.getOffset())
     hsRes.answerComments=hsRes.myComments.records.collect {Ucomment.findAllByRefcomment_id(it.id)}
     hsRes.answerOwners=hsRes.answerComments.collect {
@@ -605,7 +606,7 @@ class ProfileController {
     }
     hsRes.rUser = User.get(hsRes.inrequest?.home_id?:0)
     if(hsRes.rUser){
-	  def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+	  def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
 	  if (hsRes.inrequest?.comtext.size()>stringlimit) hsRes.inrequest?.comtext = hsRes.inrequest?.comtext.substring(0, stringlimit)
       def oUcomment = new Ucomment()
       oUcomment.user_id = hsRes.user.id
@@ -635,7 +636,7 @@ class ProfileController {
     hsRes+=requestService.getParams([],['lId','u_id'])
 
     def oUcommentSearch = new UcommentSearch()
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     hsRes.commentsOnMe = oUcommentSearch.csiSelectUcommentsOnMe(hsRes.inrequest.lId?:0,20,requestService.getOffset())
     hsRes.answerComments=hsRes.commentsOnMe.records.collect {Ucomment.findAllByRefcomment_id(it.id)}
     hsRes.owneruser = User.get(hsRes.inrequest.lId)

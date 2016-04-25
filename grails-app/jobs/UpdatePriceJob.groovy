@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class UpdatePriceJob {
 	static triggers = {
 		//simple repeatInterval: 200000 // execute job once in 200 seconds
-		cron cronExpression: ((ConfigurationHolder.config.updatePrice.cron!=[:])?ConfigurationHolder.config.updatePrice.cron:"0 15 8 * * ?")
+		cron cronExpression: ((Holders.config.updatePrice.cron!=[:])?Holders.config.updatePrice.cron:"0 15 8 * * ?")
 	}
 
 	def execute() {

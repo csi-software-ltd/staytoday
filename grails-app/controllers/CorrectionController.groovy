@@ -1,5 +1,5 @@
 import java.net.URLDecoder
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 
 class CorrectionController {  
   def requestService    
@@ -16,7 +16,7 @@ class CorrectionController {
     def oGuestbook=new Guestbook()        				
     hsRes.ip=oGuestbook.csiGetIpCount("'"+request.getRemoteAddr()+"'")
 
-    if(hsRes.ip.count<Tools.getIntVal(ConfigurationHolder.config.guestbook.ip_max,10)){		  
+    if(hsRes.ip.count<Tools.getIntVal(grailsApplication.config.guestbook.ip_max,10)){		  
 	
       oGuestbook.gbtype_id=2            
       oGuestbook.adr=request.getHeader('referer')?:''      

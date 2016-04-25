@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 //import org.openid4java.consumer.ConsumerManager
 import org.openid4java.discovery.*
 import org.openid4java.consumer.*
@@ -16,7 +16,7 @@ class UserController {
   def homeService
 
   def checkAccess() { 
-    if(Tools.getIntVal(ConfigurationHolder.config.userregservice,1)==0){  
+    if(Tools.getIntVal(grailsApplication.config.userregservice,1)==0){  
       redirect(controller:'index', action:'notactive', base:hsRes.context.mainserverURL_lang)
       return false;    
     }
@@ -42,15 +42,15 @@ class UserController {
         redirect(controller:'index', action:'index', base:hsRes.context.mainserverURL_lang)
         return
     }
-    hsRes.inrequest.user_max_enter_fail=Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)
+    hsRes.inrequest.user_max_enter_fail=Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)
     if(flash.error==51 || flash.error==1 || flash.error==3)
       if(session.user_enter_fail)
         session.user_enter_fail++
       else
         session.user_enter_fail=1
 
-    hsRes.twitter_api_key=ConfigurationHolder.config.twitter.APIKey
-    hsRes.vk_api_key=ConfigurationHolder.config.vk.APIKey	
+    hsRes.twitter_api_key=grailsApplication.config.twitter.APIKey
+    hsRes.vk_api_key=grailsApplication.config.vk.APIKey	
 
     if (hsRes.inrequest.is_ajax==1){//AJAX
       if(hsRes.user!=null){
@@ -243,7 +243,7 @@ class UserController {
     requestService.setCookie('user','parararam',10000)
     def hsInrequest = requestService.getParams(['is_ajax','service'],['id','vk_id','home_id'],['vk_pic','vk_photo','vk_name','vk_hash','control','act','what','where']).inrequest
 
-    def sStr=ConfigurationHolder.config.vk.APIKey+hsInrequest.vk_id.toString()+ConfigurationHolder.config.vk.SecretKey
+    def sStr=grailsApplication.config.vk.APIKey+hsInrequest.vk_id.toString()+grailsApplication.config.vk.SecretKey
     def base = 'http://'+request.serverName+(hsRes.context.is_dev?':8080/Arenda':'')
 
     def bNewUser = true
@@ -348,7 +348,7 @@ class UserController {
     def iRemember=requestService.getIntDef('remember',0)
     def base = 'http://'+request.serverName+(hsRes.context.is_dev?':8080/Arenda':'')
     if(!flash.user_id){//>>not from confirm
-      if((hsInrequest?.user_index?:0) && session.user_enter_fail>Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)){
+      if((hsInrequest?.user_index?:0) && session.user_enter_fail>Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)){
         try{
           if (! jcaptchaService.validateResponse("image", session.id, params.captcha)){
             flash.error=99 //error in captha
@@ -419,9 +419,9 @@ class UserController {
       redirect(controller:'index', action:'index', base:hsRes.context.mainserverURL_lang)
       return
     }
-    hsRes.twitter_api_key=ConfigurationHolder.config.twitter.APIKey
-    hsRes.vk_api_key=ConfigurationHolder.config.vk.APIKey	
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.twitter_api_key=grailsApplication.config.twitter.APIKey
+    hsRes.vk_api_key=grailsApplication.config.vk.APIKey	
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 	
     requestService.setStatistic('useraddnew')
     return hsRes
@@ -467,7 +467,7 @@ class UserController {
         flash.error<<3	
       if((hsRes.inrequest?.password1?:'')!=(hsRes.inrequest?.password2?:''))
         flash.error<<4
-      if((hsRes.inrequest?.password2?:'').size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength?:5))
+      if((hsRes.inrequest?.password2?:'').size()<Tools.getIntVal(grailsApplication.config.user.passwordlength?:5))
         flash.error<<5	
     }
 	
@@ -553,15 +553,15 @@ class UserController {
           sText=sText.replace(
           '[@NICKNAME]',hsRes.inrequest.nickname?:'').replace(
           '[@EMAIL]',hsRes.inrequest.email).replace(
-          '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+sCode))
-          sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+          '[@URL]',(grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/confirm/'+sCode))
+          sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
           sHeader=sHeader.replace(
           '[@EMAIL]',hsRes.inrequest.email).replace(
-          '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+'/user/confirm/'+sCode))
+          '[@URL]',(grailsApplication.config.grails.mailServerURL+'/user/confirm/'+sCode))
       
           try{
-            if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-              mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,hsRes.inrequest.email,sHeader,1)          
+            if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+              mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,hsRes.inrequest.email,sHeader,1)          
             else{
               sendMail{
                 to hsRes.inrequest.email        
@@ -692,11 +692,11 @@ class UserController {
             sHeader=lsText.title
           }
           sText=sText.replace('[@NICKNAME]',oUser.nickname).replace('[@EMAIL]',oUser.email)
-          sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+          sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
           sHeader=sHeader.replace('[@EMAIL]',oUser.email)
           try{
-            if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-              mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,oUser.email,sHeader,1)
+            if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+              mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,oUser.email,sHeader,1)
             else{
               sendMail{
                 to oUser.email
@@ -714,7 +714,7 @@ class UserController {
         if(!hsRes?.user){
           if (oUser.provider=='vkontakte'){
             def aVk_id = oUser.openid.split('_')
-            def sStr=ConfigurationHolder.config.vk.APIKey+aVk_id[1].toString()+ConfigurationHolder.config.vk.SecretKey
+            def sStr=grailsApplication.config.vk.APIKey+aVk_id[1].toString()+grailsApplication.config.vk.SecretKey
             redirect(action:'vk',params:[vk_id:aVk_id[1],vk_hash:(sStr).encodeAsMD5(),act:'confirm',control:'user'], base:hsRes.context.mainserverURL_lang)
             return
           } else if (oUser.provider=='facebook') {
@@ -786,7 +786,7 @@ class UserController {
       
       if(sPassword2!=sPassword1)
         hsResult.inrequest.error=1
-      else if(sPassword2.size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5))
+      else if(sPassword2.size()<Tools.getIntVal(grailsApplication.config.user.passwordlength,5))
         hsResult.inrequest.error=2      
       else{
         def oNewUser
@@ -894,15 +894,15 @@ class UserController {
         sText=sText.replace(
 		'[@NICKNAME]',oUser.nickname).replace(
         '[@EMAIL]',hsRes.inrequest.name).replace(
-        '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/passwconfirm/'+sCode))
-        sText=((sText?:'').size()>Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(ConfigurationHolder.config.mail.textsize,500)):sText
+        '[@URL]',(grailsApplication.config.grails.mailServerURL+((hsRes.context.is_dev)?"/${hsRes.context.appname}":"")+'/user/passwconfirm/'+sCode))
+        sText=((sText?:'').size()>Tools.getIntVal(grailsApplication.config.mail.textsize,500))?sText.substring(0,Tools.getIntVal(grailsApplication.config.mail.textsize,500)):sText
         sHeader=sHeader.replace(
         '[@EMAIL]',hsRes.inrequest.name).replace(
-        '[@URL]',(ConfigurationHolder.config.grails.mailServerURL+'/user/passwconfirm/'+sCode))
+        '[@URL]',(grailsApplication.config.grails.mailServerURL+'/user/passwconfirm/'+sCode))
 
         try{
-          if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-            mailerService.sendMailGAE(sText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,hsRes.inrequest.name,sHeader,1)        
+          if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+            mailerService.sendMailGAE(sText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,hsRes.inrequest.name,sHeader,1)        
           else{
           sendMail{
             to hsRes.inrequest.name        

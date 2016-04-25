@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 import groovyx.net.http.*
 import static groovyx.net.http.ContentType.*
@@ -7,9 +7,10 @@ import static groovyx.net.http.Method.*
 import groovy.json.JsonSlurper
 import org.apache.commons.httpclient.HttpClient
 import org.apache.commons.httpclient.methods.PostMethod
+import groovy.xml.MarkupBuilder
 
 class SmsService {
-
+  def grailsApplication
 	static transactional = false
 
   def sendVerifySms(oUser) {
@@ -27,7 +28,7 @@ class SmsService {
 		else if (!iRegion_id)
 			throw new Exception ('Region_id not specified')
 		def curHour = (new Date()).getHours()
-		if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.start,8)>((curHour+(Region.get(iRegion_id)?.timediff?:0)+24)%24)||((curHour+(Region.get(iRegion_id)?.timediff?:0)+24)%24)>=Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.end,22)) {
+		if (Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.start,8)>((curHour+(Region.get(iRegion_id)?.timediff?:0)+24)%24)||((curHour+(Region.get(iRegion_id)?.timediff?:0)+24)%24)>=Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.end,22)) {
 			try {
 				def oDelayed = new DelayedSMS(user_id:oUser.id,region_id:iRegion_id,type:0)
 				oDelayed.save(flush:true)
@@ -48,7 +49,7 @@ class SmsService {
 		else if (!iRegion_id)
 			throw new Exception ('Region_id not specified')
 		def curHour = (new Date()).getHours()
-		if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.end,22)) {
+		if (Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.end,22)) {
 			try {
 				def oDelayed = new DelayedSMS(user_id:oUser.id,region_id:iRegion_id,type:1)
 				oDelayed.save(flush:true)
@@ -69,7 +70,7 @@ class SmsService {
 		else if (!iRegion_id)
 			throw new Exception ('Region_id not specified')
 		def curHour = (new Date()).getHours()
-		if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.end,22)) {
+		if (Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.end,22)) {
 			try {
 				def oDelayed = new DelayedSMS(user_id:oUser.id,region_id:iRegion_id,type:2)
 				oDelayed.save(flush:true)
@@ -90,7 +91,7 @@ class SmsService {
 		else if (!iRegion_id)
 			throw new Exception ('Region_id not specified')
 		def curHour = (new Date()).getHours()
-		if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(ConfigurationHolder.config.noticeSMS.daytime.end,22)) {
+		if (Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.start,8)>curHour+(Region.get(iRegion_id)?.timediff?:0)||curHour+(Region.get(iRegion_id)?.timediff?:0)>=Tools.getIntVal(grailsApplication.config.noticeSMS.daytime.end,22)) {
 			try {
 				def oDelayed = new DelayedSMS(user_id:oUser.id,region_id:iRegion_id,type:3)
 				oDelayed.save(flush:true)
@@ -116,11 +117,11 @@ class SmsService {
 		def jSonBody = [:]
 		//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
 		//jSonBody.apikey = "9AWDMO2EM4XPHP5X51521Y386N642SUIN6SDUIEZL3QD864Y4CPB25N3A04NC0FN"
-		jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+		jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 		jSonBody.send = []
 		def sendBody = [:]
 		sendBody.id = 100500
-		sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(sendBody.from.size()>11)
 			sendBody.from = sendBody.from[0..10]
 		sendBody.to = _oNotice.contact.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -147,10 +148,10 @@ class SmsService {
 				Sms.withTransaction {
 					def jSonBody = [:]
 					//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-					jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+					jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 					jSonBody.send = []
 					def sendBody = [:]
-					sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(sendBody.from.size()>11)
 						sendBody.from = sendBody.from[0..10]
 					sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -212,10 +213,10 @@ class SmsService {
     		Sms.withTransaction {
 					def jSonBody = [:]
 					jSonBody.version = 'http'
-					jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-					jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+					jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+					jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 					jSonBody.command = 'send'
-					jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(jSonBody.from.size()>11)
 						jSonBody.from = jSonBody.from[0..10]
 					jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -274,10 +275,10 @@ class SmsService {
 				Sms.withTransaction {
 					def jSonBody = [:]
 					//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-					jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+					jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 					jSonBody.send = []
 					def sendBody = [:]
-					sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(sendBody.from.size()>11)
 						sendBody.from = sendBody.from[0..10]
 					sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -339,10 +340,10 @@ class SmsService {
     		Sms.withTransaction {
 					def jSonBody = [:]
 					jSonBody.version = 'http'
-					jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-					jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+					jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+					jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 					jSonBody.command = 'send'
-					jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(jSonBody.from.size()>11)
 						jSonBody.from = jSonBody.from[0..10]
 					jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -401,10 +402,10 @@ class SmsService {
 				Sms.withTransaction {
 					def jSonBody = [:]
 					//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-					jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+					jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 					jSonBody.send = []
 					def sendBody = [:]
-					sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(sendBody.from.size()>11)
 						sendBody.from = sendBody.from[0..10]
 					sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -466,10 +467,10 @@ class SmsService {
     		Sms.withTransaction {
 					def jSonBody = [:]
 					jSonBody.version = 'http'
-					jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-					jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+					jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+					jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 					jSonBody.command = 'send'
-					jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(jSonBody.from.size()>11)
 						jSonBody.from = jSonBody.from[0..10]
 					jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -528,10 +529,10 @@ class SmsService {
 				Sms.withTransaction {
 					def jSonBody = [:]
 					//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-					jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+					jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 					jSonBody.send = []
 					def sendBody = [:]
-					sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(sendBody.from.size()>11)
 						sendBody.from = sendBody.from[0..10]
 					sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -578,7 +579,6 @@ class SmsService {
 							error = 404
 				  	}
 					}
-					updateSmsStatus(sendBody.id,error,servId)
 				}
 			}
 		}
@@ -593,10 +593,10 @@ class SmsService {
     		Sms.withTransaction {
 					def jSonBody = [:]
 					jSonBody.version = 'http'
-					jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-					jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+					jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+					jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 					jSonBody.command = 'send'
-					jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+					jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 					if(jSonBody.from.size()>11)
 						jSonBody.from = jSonBody.from[0..10]
 					jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -651,11 +651,11 @@ class SmsService {
 
 		def jSonBody = [:]
 		//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-		jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+		jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 		jSonBody.send = []
 		def sendBody = [:]
 		sendBody.id = getNewSMSid(oUser)
-		sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(sendBody.from.size()>11)
 			sendBody.from = sendBody.from[0..10]
 		sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -710,10 +710,10 @@ class SmsService {
 
 		def jSonBody = [:]
 		jSonBody.version = 'http'
-		jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-		jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+		jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+		jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 		jSonBody.command = 'send'
-		jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(jSonBody.from.size()>11)
 			jSonBody.from = jSonBody.from[0..10]
 		jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -801,12 +801,12 @@ class SmsService {
 
 		def jSonBody = [:]
 		//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-		jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+		jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 		jSonBody.send = []
 		def smsText = oTemplate.mtext.replace('[@CONTACT]',sQ.contact).replace('[@NAME]',(sQ.name?sQ.name:'пользователь'))
 		def sendBody = [:]
 		sendBody.id = smsId
-		sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(sendBody.from.size()>11)
 			sendBody.from = sendBody.from[0..10]
 		sendBody.to = sQ.contact.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -862,10 +862,10 @@ class SmsService {
 
 		def jSonBody = [:]
 		jSonBody.version = 'http'
-		jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-		jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+		jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+		jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 		jSonBody.command = 'send'
-		jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(jSonBody.from.size()>11)
 			jSonBody.from = jSonBody.from[0..10]
 		jSonBody.to = sQ.contact.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -943,10 +943,10 @@ class SmsService {
 
 		def jSonBody = [:]
 		jSonBody.version = 'http'
-		jSonBody.login = (ConfigurationHolder.config.SMSgateUkraine.login)?ConfigurationHolder.config.SMSgateUkraine.login.trim():"79213509648"
-		jSonBody.password = (ConfigurationHolder.config.SMSgateUkraine.password)?ConfigurationHolder.config.SMSgateUkraine.password.trim():"info2012ST"
+		jSonBody.login = (grailsApplication.config.SMSgateUkraine.login)?grailsApplication.config.SMSgateUkraine.login.trim():"79213509648"
+		jSonBody.password = (grailsApplication.config.SMSgateUkraine.password)?grailsApplication.config.SMSgateUkraine.password.trim():"info2012ST"
 		jSonBody.command = 'send'
-		jSonBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		jSonBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(jSonBody.from.size()>11)
 			jSonBody.from = jSonBody.from[0..10]
 		jSonBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -1000,11 +1000,11 @@ class SmsService {
 
 		def jSonBody = [:]
 		//jSonBody.apikey = "59S9QNLO7I8521U9QZYG1P7C4A4OSO383378IL6O941B74D018Y7F3TY4045UGI4"
-		jSonBody.apikey = (ConfigurationHolder.config.SMSgate.apikey)?ConfigurationHolder.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
+		jSonBody.apikey = (grailsApplication.config.SMSgate.apikey)?grailsApplication.config.SMSgate.apikey.trim():"XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ"
 		jSonBody.send = []
 		def sendBody = [:]
 		sendBody.id = getNewSMSid(oUser.id,oUser.tel,sText)
-		sendBody.from = ((ConfigurationHolder.config.SMSgate.from)?ConfigurationHolder.config.SMSgate.from:'staytoday.ru')
+		sendBody.from = ((grailsApplication.config.SMSgate.from)?grailsApplication.config.SMSgate.from:'staytoday.ru')
 		if(sendBody.from.size()>11)
 			sendBody.from = sendBody.from[0..10]
 		sendBody.to = oUser.tel.replace('+','').replace('(','').replace(')','').replace(' ','').replace('-','')
@@ -1058,8 +1058,8 @@ class SmsService {
   Integer payuIdn(_payorder) {
 
     def configParams = [
-      secretKey:ConfigurationHolder.config.payu.secretKey?ConfigurationHolder.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
-      merchant:ConfigurationHolder.config.payu.merchant?ConfigurationHolder.config.payu.merchant.trim():'staytodq'
+      secretKey:grailsApplication.config.payu.secretKey?grailsApplication.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
+      merchant:grailsApplication.config.payu.merchant?grailsApplication.config.payu.merchant.trim():'staytodq'
     ]
 
 		def curtime = String.format('%tF %<tT', new Date())
@@ -1106,6 +1106,170 @@ class SmsService {
 		}
 
 		return error
+  }
+
+  def paypal_SetExpressCheckout(hsRequest) {
+
+		def jSonBody = [:]
+		jSonBody.USER = hsRequest.configParams.user
+		jSonBody.PWD = hsRequest.configParams.pwd
+		jSonBody.SIGNATURE = hsRequest.configParams.signature
+		jSonBody.METHOD = 'SetExpressCheckout'
+		jSonBody.VERSION = '124.0'
+		jSonBody.NOSHIPPING = '1'
+		jSonBody.ALLOWNOTE = '0'
+		jSonBody.PAYMENTREQUEST_0_PAYMENTACTION = 'SALE'
+		jSonBody.PAYMENTREQUEST_0_AMT = hsRequest.purchaseamt
+		jSonBody.PAYMENTREQUEST_0_CURRENCYCODE = 'RUB'
+		jSonBody.PAYMENTREQUEST_0_DESC = hsRequest.orderdescription
+		jSonBody.PAYMENTREQUEST_0_INVNUM = hsRequest.payorder.norder-'st'
+		jSonBody.RETURNURL = hsRequest.configParams.retURL
+		jSonBody.CANCELURL = hsRequest.configParams.cancURL
+
+		def responseMap
+
+		def http = hsRequest.configParams.testmode?new HTTPBuilder('https://api-3t.sandbox.paypal.com'):new HTTPBuilder('https://api-3t.paypal.com')
+
+		http.request(GET) {
+	  	uri.path = '/nvp'
+	  	uri.query = jSonBody
+	  	response.success = { resp, reader ->
+	  		responseMap = reader.text.split('&').inject([:]) {map, kv -> def (key, value) = kv.split('=').toList(); map[key] = value != null ? URLDecoder.decode(value) : null; map }
+	  		if (responseMap?.ACK!="Success") log.debug ('Error while using paypal API: paypal_SetExpressCheckout: '+responseMap)
+	  	}
+	  	response.failure = { resp ->
+				responseMap = null
+	  	}
+		}
+
+		return responseMap
+  }
+
+  def paypal_GetExpressCheckoutDetails(hsRequest) {
+
+		def jSonBody = [:]
+		jSonBody.USER = hsRequest.configParams.user
+		jSonBody.PWD = hsRequest.configParams.pwd
+		jSonBody.SIGNATURE = hsRequest.configParams.signature
+		jSonBody.METHOD = 'GetExpressCheckoutDetails'
+		jSonBody.VERSION = '124.0'
+		jSonBody.TOKEN = hsRequest.inrequest.token
+
+		def responseMap
+
+		def http = hsRequest.configParams.testmode?new HTTPBuilder('https://api-3t.sandbox.paypal.com'):new HTTPBuilder('https://api-3t.paypal.com')
+		http.request(GET) {
+	  	uri.path = '/nvp'
+	  	uri.query = jSonBody
+	  	response.success = { resp, reader ->
+	  		responseMap = reader.text.split('&').inject([:]) {map, kv -> def (key, value) = kv.split('=').toList(); map[key] = value != null ? URLDecoder.decode(value) : null; map }
+	  		if (responseMap?.ACK!="Success") log.debug ('Error while using paypal API: paypal_GetExpressCheckoutDetails: '+responseMap)
+	  	}
+	  	response.failure = { resp ->
+				responseMap = null
+	  	}
+		}
+
+		return responseMap
+  }
+
+  def paypal_DoExpressCheckoutPayment(hsRequest) {
+
+		def jSonBody = [:]
+		jSonBody.USER = hsRequest.configParams.user
+		jSonBody.PWD = hsRequest.configParams.pwd
+		jSonBody.SIGNATURE = hsRequest.configParams.signature
+		jSonBody.METHOD = 'DoExpressCheckoutPayment'
+		jSonBody.VERSION = '124.0'
+		jSonBody.PAYMENTREQUEST_0_PAYMENTACTION = 'SALE'
+		jSonBody.PAYMENTREQUEST_0_AMT = hsRequest.paymentdetails.AMT
+		jSonBody.PAYMENTREQUEST_0_CURRENCYCODE = 'RUB'
+		jSonBody.PAYERID = hsRequest.paymentdetails.PAYERID
+		jSonBody.TOKEN = hsRequest.paymentdetails.TOKEN
+
+		def responseMap
+
+		def http = hsRequest.configParams.testmode?new HTTPBuilder('https://api-3t.sandbox.paypal.com'):new HTTPBuilder('https://api-3t.paypal.com')
+		http.request(GET) {
+	  	uri.path = '/nvp'
+	  	uri.query = jSonBody
+	  	response.success = { resp, reader ->
+	  		responseMap = reader.text.split('&').inject([:]) {map, kv -> def (key, value) = kv.split('=').toList(); map[key] = value != null ? URLDecoder.decode(value) : null; map }
+	  		if (responseMap?.ACK!="Success") log.debug ('Error while using paypal API: paypal_DoExpressCheckoutPayment: '+responseMap)
+	  	}
+	  	response.failure = { resp ->
+				responseMap = null
+	  	}
+		}
+
+		return responseMap
+  }
+
+  def postXMLdata(sUrl,sPath,hsBody) {
+  	def responseText
+    def writer = new StringWriter()
+    def xml = new MarkupBuilder(writer)
+    xml.mkp.xmlDeclaration(version: "1.0", encoding: "UTF-8")
+    xml.booking(){
+    	hsBody.each{ key, value ->
+    		"${key}""${value}"
+    	}
+  	}
+		println writer.toString()
+		def http = new HTTPBuilder(sUrl)
+		http.request(POST, TEXT) {
+			uri.path = sPath
+		  body = writer.toString()
+/*		  body = {
+		  	booking {
+		    	hsBody.each{ key, value ->
+		    		"${key}""${value}"
+		    	}
+		  	}
+		  }*/
+/*	  	response.success = { resp, resp_xml ->
+	  		responseText = resp_xml.success
+	  	}
+	  	response.failure = { resp, resp_xml ->
+	  		println resp.status
+				responseText = resp_xml.error
+	  	}*/
+	  	response.success = { resp, reader ->
+	  		responseText = reader.text
+	  	}
+	  	response.failure = { resp, reader ->
+	  		println resp.status
+				responseText = reader.text
+	  	}
+		}
+		println responseText
+		return responseText
+  }
+
+  def postJSONdata(sUrl,sPath,hsBody) {
+
+		def result
+
+		def http = new HTTPBuilder(sUrl)
+		http.request(POST, ContentType.JSON) {
+			uri.path = sPath
+			body = hsBody
+	  	response.success = { resp, json ->
+	  		if (json.success=='quote sent') result = 1
+	  		else {
+	  			result = 0
+	  			log.debug ('Error while using API: postJSONdata: '+sUrl+sPath+' - '+hsBody)
+	  			log.debug (json.status)
+	  		}
+	  	}
+	  	response.failure = { resp ->
+  			log.debug ('Error while using API: postJSONdata: '+sUrl+sPath+' - '+hsBody)
+  			log.debug (resp.status)
+				result = 0
+	  	}
+		}
+
+		return result
   }
 
 	def megaindexscan() {
@@ -2409,4 +2573,58 @@ class SmsService {
 		return aRets.size()
 	}
 
+  def testapi() {
+  	def responseText
+    //def writer = new StringWriter()
+    /*def xml = new MarkupBuilder(writer)
+    xml.mkp.xmlDeclaration(version: "1.0", encoding: "UTF-8")*/
+    /*xml.request(id:122214){
+    	user_id '1'
+    	username 't'
+    	usermail 'dsfsdfsdf@sdsdf.we'
+    	home '766'
+    	date_start '2015-12-15'
+    	date_end '2015-12-17'
+    	price '11221'
+    	guest_num '2'
+    	comment 'bla bla'
+      secretcode 'aa390fe9-6ad5-47ea-951f-c0ed32f74e47'
+  	}*/
+  	/*xml.request(id:122213){
+  		secretcode 'aa390fe9-6ad5-47ea-951f-c0ed32f74e47'
+  		comment 'api comment'
+  	}*/
+  	def xmlstring = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<booking>
+  <id>566daf8e58669338753d62af</id>
+  <action>confirm</action>
+  <timestamp>2015-12-13T17:49:02.256Z</timestamp>
+  <created_at>2015-12-13T15:31:15.256Z</created_at>
+  <total>200</total>
+  <currency>USD</currency>
+  <name>Jim</name>
+  <email>jim@gmail.com</email>
+  <propertyId>345</propertyId>
+  <source>Flipkey</source>
+  <checkIn>2015-12-20</checkIn>
+  <checkOut>2015-12-26</checkOut>
+  <guests>3</guests>
+  <secret>aa390fe9-6ad5-47ea-951f-c0ed32f74e47</secret>
+</booking>
+  	"""
+    //println writer.toString()
+		def http = new HTTPBuilder('http://localhost:8080')
+		http.request(POST, TEXT) {
+			uri.path = '/Arenda/api/book/booking'
+		  body = xmlstring
+	  	response.success = { resp, reader ->
+	  		responseText = reader.text
+	  	}
+	  	response.failure = { resp, reader ->
+	  		println resp.status
+				responseText = reader.text
+	  	}
+		}
+		return responseText
+  }
 }

@@ -1,6 +1,6 @@
 /*
 You can find all detailed parameter usage from
-http://code.google.com/p/javamelody/wiki/UserGuide#6._Optional_parameters
+https://github.com/javamelody/javamelody/wiki/UserGuide#6-optional-parameters
 Any parameter with 'javamelody.' prefix configured in this file will be add as init-param of java melody MonitoringFilter.
  */
 
@@ -41,5 +41,3 @@ Specify jndi name of datasource to monitor in production environment
         javamelody.datasources = 'java:comp/env/myapp/mydatasource'
     }
 }*/
-javamelody.'quartz-default-listener-disabled' = true
-javamelody.'allowed-addr-pattern' = '127.0.0.1|0:0:0:0:0:0:0:1|192.168.2..*|84.52.96.138|109.167.195.242'

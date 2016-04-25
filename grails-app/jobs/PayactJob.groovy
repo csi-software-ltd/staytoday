@@ -1,9 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class PayactJob {
   def billingService
 	static triggers = {
 		//simple repeatInterval: 60000 // execute job once in 60 seconds
-		cron cronExpression: ((ConfigurationHolder.config.payact.cron!=[:])?ConfigurationHolder.config.payact.cron:"0 0 5 1 * ?")
+		cron cronExpression: ((Holders.config.payact.cron!=[:])?Holders.config.payact.cron:"0 0 5 1 * ?")
 	}
 
 	def execute() {

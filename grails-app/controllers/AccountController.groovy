@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class AccountController {
   def requestService
@@ -7,11 +7,12 @@ class AccountController {
   def billingService
   def smsService
   def usersService
+  def pdfRenderingService
   def iRubId=857 //rub valuta_id for price conversion 
   def static final DATE_FORMAT='yyyy-MM-dd'
   
   def checkUser(hsRes) {
-    if(!hsRes?.user){	  	                       
+    if(!hsRes?.user){
       response.sendError(401)
       return false;
     }
@@ -21,13 +22,17 @@ class AccountController {
   }
 
   def checkUserAJAX(hsRes) {
-    return hsRes?.user as boolean
+    if(!hsRes?.user){
+      render(contentType:"application/json"){[error:true]}
+      return false
+    }
+    return true
   }
 
   def init(hsRes){
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + hsTmp.client_id.toString()+'/'
-    hsTmp.billingsettings = Tools.getIntVal(ConfigurationHolder.config.billingsettings.active,1)
+    hsTmp.imageurl = grailsApplication.config.urlphoto + hsTmp.client_id.toString()+'/'
+    hsTmp.billingsettings = Tools.getIntVal(grailsApplication.config.billingsettings.active,1)
     session.attention_message_once=null
     def oClient=Client.get(hsTmp?.client_id?:0)    
     if(oClient&&!(oClient?.is_notification?:0)){
@@ -121,6 +126,7 @@ class AccountController {
 
     return hsRes
   }
+
   def offerprint = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true)
@@ -183,7 +189,7 @@ class AccountController {
   def findbank = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary()
-    if (!checkUserAJAX(hsRes)) render(contentType:"application/json"){[error:true]}
+    if (!checkUserAJAX(hsRes)) return
 
     hsRes+=requestService.getParams(null,null,['bik','bankname'])
 
@@ -198,7 +204,7 @@ class AccountController {
   def savepayoutdetails = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary()
-    if (!checkUserAJAX(hsRes)) render(contentType:"application/json"){[error:true]}
+    if (!checkUserAJAX(hsRes)) return
     hsRes.user = User.get(hsRes.user?.id)
     hsRes.client = Client.get(hsRes.user.client_id?:0)
     if (!hsRes.client) render(contentType:"application/json"){[error:true]}
@@ -419,7 +425,7 @@ class AccountController {
   def savebillingdetails = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary()
-    if (!checkUserAJAX(hsRes)) render(contentType:"application/json"){[error:true]}
+    if (!checkUserAJAX(hsRes)) return
     hsRes.user = User.get(hsRes.user?.id)
     hsRes.client = Client.get(hsRes.user.client_id?:0)
     if (!hsRes.client) render(contentType:"application/json"){[error:true]}
@@ -456,7 +462,83 @@ class AccountController {
 
     render(contentType:"application/json"){[error:false]}
   }
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////partner program/////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+  def partner = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(false,true,true)
+    if (!checkUser(hsRes)) return
 
+    hsRes+=init(hsRes)
+
+    hsRes.client = Client.get(hsRes.user.client_id?:0)
+    hsRes.partnerway = Partnerway.findAllByModstatus(1)
+
+    return hsRes
+  }
+
+  def partnerofferprint = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(false,true,true)
+    if (!checkUser(hsRes)) return
+
+    hsRes.text=Infotext.findByControllerAndAction('account','partner')['itext'+hsRes.context?.lang]
+
+    render(view: "offerprint", model: hsRes)
+    return
+  }
+
+  def partnerconfirmation = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary()
+    if (!checkUserAJAX(hsRes)) return
+    hsRes.user = User.get(hsRes.user?.id)
+    hsRes.client = Client.get(hsRes.user.client_id?:0)
+    if (!hsRes.client||hsRes.client.partnerstatus==2) render(contentType:"application/json"){[error:true]}
+
+    hsRes+=requestService.getParams(['confirmdogovor','partnerway_id'],null,['prequisite'])
+
+    hsRes.result = [:]
+    hsRes.result.errorsList = []
+    if (!hsRes.inrequest.confirmdogovor)
+      hsRes.result.errorsList<<1
+    if (!hsRes.inrequest.partnerway_id)
+      hsRes.result.errorsList<<2
+    else if (hsRes.inrequest.partnerway_id!=1&&!hsRes.inrequest.prequisite)
+      hsRes.result.errorsList<<3
+
+    if (!hsRes.result.errorsList) {
+      try {
+        if(hsRes.client.partnerstatus==0) mailerService.sendStartPartnerMail(hsRes.client,hsRes.inrequest.partnerway_id)
+        hsRes.client.csiSetPatnerway(hsRes.inrequest.partnerway_id).csiSetPrequisite(hsRes.inrequest.prequisite).csiSetPatnerstatus(1).save(failOnError:true)
+        hsRes.result.where = hsRes.client.partnerway_id==1?createLink(controller:'account',action: 'paypal',id:(billingService.createPartnerConfirmationOrder(userip:request.remoteAddr,user:hsRes.user,client:hsRes.client,payway:7)?.norder?:''),absolute:true):''
+      } catch(Exception e) {
+        log.debug("Cannot update partner status for client: "+hsRes.client.id+"\n"+e.toString()+' in account/partnerconfirmation')
+        hsRes.result.errorsList<<101
+      }
+    }
+
+    render hsRes.result as JSON
+    return
+  }
+
+  def recallpartner = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary()
+    if (!checkUserAJAX(hsRes)) return
+    hsRes.user = User.get(hsRes.user?.id)
+    hsRes.client = Client.get(hsRes.user.client_id?:0)
+    if (!hsRes.client||hsRes.client.partnerstatus==0) render(contentType:"application/json"){[error:true]}
+
+    try {
+      hsRes.client.csiSetPatnerstatus(0).clearPartnerData().save(failOnError:true)
+    } catch(Exception e) {
+      log.debug("Cannot update partner status for client: "+hsRes.client.id+"\n"+e.toString()+' in account/recallpartner')
+    }
+
+    render(contentType:"application/json"){[error:false]}
+  }
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////payorder documents//////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,7 +573,7 @@ class AccountController {
     hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
 
     if (hsRes.inrequest?.type) {
-      renderPdf(template: 'payorderdocprint', model: hsRes, filename: "platStaytoday")
+      render file: pdfRenderingService.render(template: "payorderdocprint", model: hsRes, controller:this).toByteArray(), filename: "platStaytoday", contentType: "application/pdf"
       return
     } else {
       return hsRes
@@ -514,9 +596,9 @@ class AccountController {
       return
     }
     hsRes.configParams = [
-      password:ConfigurationHolder.config.liqpay.password?ConfigurationHolder.config.liqpay.password.trim():'i35361y272ywp5l',
-      merid:ConfigurationHolder.config.liqpay.merid?ConfigurationHolder.config.liqpay.merid.trim():'I0MO0A98',
-      acqid:ConfigurationHolder.config.liqpay.acqid?ConfigurationHolder.config.liqpay.acqid.trim():'469584'
+      password:grailsApplication.config.liqpay.password?grailsApplication.config.liqpay.password.trim():'i35361y272ywp5l',
+      merid:grailsApplication.config.liqpay.merid?grailsApplication.config.liqpay.merid.trim():'I0MO0A98',
+      acqid:grailsApplication.config.liqpay.acqid?grailsApplication.config.liqpay.acqid.trim():'469584'
     ]
     hsRes.accdata = Accountdata.get(1)
     hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
@@ -533,9 +615,9 @@ class AccountController {
 
     hsRes+=requestService.getParams(['responsecode'],null,['reasoncode','orderid','signature','reasoncodedesc'])
     hsRes.configParams = [
-      password:ConfigurationHolder.config.liqpay.password?ConfigurationHolder.config.liqpay.password.trim():'i35361y272ywp5l',
-      merid:ConfigurationHolder.config.liqpay.merid?ConfigurationHolder.config.liqpay.merid.trim():'I0MO0A98',
-      acqid:ConfigurationHolder.config.liqpay.acqid?ConfigurationHolder.config.liqpay.acqid.trim():'469584'
+      password:grailsApplication.config.liqpay.password?grailsApplication.config.liqpay.password.trim():'i35361y272ywp5l',
+      merid:grailsApplication.config.liqpay.merid?grailsApplication.config.liqpay.merid.trim():'I0MO0A98',
+      acqid:grailsApplication.config.liqpay.acqid?grailsApplication.config.liqpay.acqid.trim():'469584'
     ]
     hsRes.signature = (hsRes.configParams.password+hsRes.configParams.merid+hsRes.configParams.acqid+hsRes.inrequest.orderid+hsRes.inrequest.responsecode+hsRes.inrequest.reasoncode+hsRes.inrequest.reasoncodedesc).encodeAsSHA1Bytes().encodeAsBase64()
     hsRes.payorder = Payorder.findByNorder(hsRes.inrequest?.orderid?:'')
@@ -574,8 +656,8 @@ class AccountController {
       return
     }
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.payu.secretKey?ConfigurationHolder.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
-      merchant:ConfigurationHolder.config.payu.merchant?ConfigurationHolder.config.payu.merchant.trim():'staytodq'
+      secretKey:grailsApplication.config.payu.secretKey?grailsApplication.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
+      merchant:grailsApplication.config.payu.merchant?grailsApplication.config.payu.merchant.trim():'staytodq'
     ]
     hsRes.accdata = Accountdata.get(1)
     hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
@@ -607,8 +689,8 @@ class AccountController {
     hsRes+=requestService.getParams(null,null,['ctrl','payrefno'])
     hsRes.result = requestService.getIntDef('result',0)
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.payu.secretKey?ConfigurationHolder.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
-      merchant:ConfigurationHolder.config.payu.merchant?ConfigurationHolder.config.payu.merchant.trim():'staytodq'
+      secretKey:grailsApplication.config.payu.secretKey?grailsApplication.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
+      merchant:grailsApplication.config.payu.merchant?grailsApplication.config.payu.merchant.trim():'staytodq'
     ]
     def curUrl  = request.requestURL.toString()-'.dispatch'-'/grails'+'?'+request.getQueryString().toString()-('&ctrl='+hsRes.inrequest.ctrl)
     if(!(Tools.generateHmacMD5(curUrl.getBytes("UTF-8").length+curUrl,hsRes.configParams.secretKey).encodeAsHex()==hsRes.inrequest.ctrl)){
@@ -626,8 +708,8 @@ class AccountController {
     hsRes+=requestService.getParams(null,null,['REFNO','REFNOEXT','ORDERSTATUS','CURRENCY','IPN_PID[]','IPN_PNAME[]','IPN_TOTALGENERAL','IPN_DATE','HASH'])
 
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.payu.secretKey?ConfigurationHolder.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
-      merchant:ConfigurationHolder.config.payu.merchant?ConfigurationHolder.config.payu.merchant.trim():'staytodq'
+      secretKey:grailsApplication.config.payu.secretKey?grailsApplication.config.payu.secretKey.trim():'!F6[bz*5a6b2++Q3EA7@',
+      merchant:grailsApplication.config.payu.merchant?grailsApplication.config.payu.merchant.trim():'staytodq'
     ]
     def curtime = String.format('%tY%<tm%<td%<tH%<tM%<tS',new Date())
     def reqstr = ''
@@ -677,9 +759,9 @@ class AccountController {
       return
     }
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.wmoney.secretKey?ConfigurationHolder.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
-      merchant:ConfigurationHolder.config.wmoney.merchant?ConfigurationHolder.config.wmoney.merchant.trim():'R189136258947',
-      testmode:Tools.getIntVal(ConfigurationHolder.config.wmoney.testmode,1)
+      secretKey:grailsApplication.config.wmoney.secretKey?grailsApplication.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
+      merchant:grailsApplication.config.wmoney.merchant?grailsApplication.config.wmoney.merchant.trim():'R189136258947',
+      testmode:Tools.getIntVal(grailsApplication.config.wmoney.testmode,1)
     ]
     hsRes.accdata = Accountdata.get(1)
     hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
@@ -732,9 +814,9 @@ class AccountController {
       return
     }
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.wmoney.secretKey?ConfigurationHolder.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
-      merchant:ConfigurationHolder.config.wmoney.merchant?ConfigurationHolder.config.wmoney.merchant.trim():'R189136258947',
-      testmode:Tools.getIntVal(ConfigurationHolder.config.wmoney.testmode,1)
+      secretKey:grailsApplication.config.wmoney.secretKey?grailsApplication.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
+      merchant:grailsApplication.config.wmoney.merchant?grailsApplication.config.wmoney.merchant.trim():'R189136258947',
+      testmode:Tools.getIntVal(grailsApplication.config.wmoney.testmode,1)
     ]
     hsRes.purchaseamt = hsRes.configParams.testmode?1f:(hsRes.payorder.summa as float)
     def requestStr = ''
@@ -765,6 +847,110 @@ class AccountController {
     return
   }
 
+  def paypal = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(false,true,true)
+    if (!checkUser(hsRes)) return
+
+    hsRes+=requestService.getParams(null,null,['id'])
+    hsRes.payorder = Payorder.findByUser_idAndNorder(hsRes.user.id,hsRes.inrequest?.id?:'')
+    if (!hsRes.payorder) {
+      response.sendError(404)
+      return
+    }
+    hsRes.configParams = [
+      user:grailsApplication.config.paypal.user?grailsApplication.config.paypal.user.trim():'info-facilitator_api1.staytoday.ru',
+      pwd:grailsApplication.config.paypal.pwd?grailsApplication.config.paypal.pwd.trim():'KJRYE3PSUR4H856N',
+      signature:grailsApplication.config.paypal.signature?grailsApplication.config.paypal.signature.trim():'AiCy60LSzMTxiUQ7My4hwo61JyRxAjfML0HRrNVYvJw.AubVWr2-L6-D',
+      testmode:Tools.getIntVal(grailsApplication.config.paypal.testmode,1),
+      paymenturl:Tools.getIntVal(grailsApplication.config.paypal.testmode,1)?'https://www.sandbox.paypal.com/cgi-bin/webscr':'https://www.paypal.com/cgi-bin/webscr',
+      retURL:g.createLink(controller:'account',action:'ppsuccess',base:hsRes.context.sequreServerURL),
+      cancURL:g.createLink(controller:'account',action:'ppfail',base:hsRes.context.sequreServerURL)
+    ]
+    hsRes.accdata = Accountdata.get(1)
+    hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
+    hsRes.purchaseamt = hsRes.configParams.testmode?1f:(hsRes.payorder.summa as float)
+    hsRes.orderdescription = hsRes.payorder.norder[3]=='2'?'Подтверждающий платеж':hsRes.accdata.paycomment.replace('[@NORDER]',hsRes.payorder?.norder).replace('[@START]',String.format('%td.%<tm.%<tY',hsRes.mbox?.date_start)).replace('[@END]',String.format('%td.%<tm.%<tY',hsRes.mbox?.date_end))
+
+    hsRes.ppresponse = smsService.paypal_SetExpressCheckout(hsRes)
+
+    return hsRes
+  }
+
+  def ppsuccess = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(false,true,true)
+    hsRes+=requestService.getParams(null,null,['PayerID','token'])
+    if (!hsRes.inrequest.token) {
+      response.sendError(404)
+      return
+    }
+
+    hsRes.configParams = [
+      user:grailsApplication.config.paypal.user?grailsApplication.config.paypal.user.trim():'info-facilitator_api1.staytoday.ru',
+      pwd:grailsApplication.config.paypal.pwd?grailsApplication.config.paypal.pwd.trim():'KJRYE3PSUR4H856N',
+      signature:grailsApplication.config.paypal.signature?grailsApplication.config.paypal.signature.trim():'AiCy60LSzMTxiUQ7My4hwo61JyRxAjfML0HRrNVYvJw.AubVWr2-L6-D',
+      testmode:Tools.getIntVal(grailsApplication.config.paypal.testmode,1),
+      paymenturl:Tools.getIntVal(grailsApplication.config.paypal.testmode,1)?'https://www.sandbox.paypal.com/cgi-bin/webscr':'https://www.paypal.com/cgi-bin/webscr'
+    ]
+
+    hsRes.paymentdetails = smsService.paypal_GetExpressCheckoutDetails(hsRes)
+
+    hsRes.payorder = Payorder.findByNorder(hsRes.paymentdetails?.INVNUM?'st'+hsRes.paymentdetails.INVNUM:'')
+    if (!hsRes.payorder) {
+      response.sendError(404)
+      return
+    }
+
+    hsRes.paymenttype = hsRes.payorder.norder[3]=='2'?2:1
+    def doResponse = smsService.paypal_DoExpressCheckoutPayment(hsRes)
+    if (doResponse?.ACK=="Success") {
+      billingService.doTransaction( billingService.createPaytrans(hsRes.payorder,doResponse.PAYMENTINFO_0_TRANSACTIONID?:'',hsRes.paymenttype==1?2:24) )
+      if (hsRes.paymenttype==2){
+        Client.get(User.get(hsRes.payorder.user_id)?.client_id?:0)?.updatePPdata(hsRes.paymentdetails.EMAIL,hsRes.paymentdetails.PAYERID)?.save(flush:true)
+        mailerService.sendConfirmPartnerMail(User.get(hsRes.payorder.user_id))
+      }
+      log.debug('Paypal payment is complete')
+    } else {
+      log.debug('InCorrect Paypal payment')
+      response.sendError(404)
+      return
+    }
+
+    hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
+    return hsRes
+  }
+
+  def ppfail = {
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(false,true,true)
+
+    hsRes+=requestService.getParams(null,null,['PayerID','token'])
+    if (!hsRes.inrequest.token) {
+      response.sendError(404)
+      return
+    }
+
+    hsRes.configParams = [
+      user:grailsApplication.config.paypal.user?grailsApplication.config.paypal.user.trim():'info-facilitator_api1.staytoday.ru',
+      pwd:grailsApplication.config.paypal.pwd?grailsApplication.config.paypal.pwd.trim():'KJRYE3PSUR4H856N',
+      signature:grailsApplication.config.paypal.signature?grailsApplication.config.paypal.signature.trim():'AiCy60LSzMTxiUQ7My4hwo61JyRxAjfML0HRrNVYvJw.AubVWr2-L6-D',
+      testmode:Tools.getIntVal(grailsApplication.config.paypal.testmode,1),
+      paymenturl:Tools.getIntVal(grailsApplication.config.paypal.testmode,1)?'https://www.sandbox.paypal.com/cgi-bin/webscr':'https://www.paypal.com/cgi-bin/webscr'
+    ]
+
+    hsRes.paymentdetails = smsService.paypal_GetExpressCheckoutDetails(hsRes)
+
+    hsRes.payorder = Payorder.findByNorder(hsRes.paymentdetails?.INVNUM?'st'+hsRes.paymentdetails.INVNUM:'')
+    if (!hsRes.payorder) {
+      response.sendError(404)
+      return
+    }
+
+    hsRes.paymenttype = hsRes.payorder.norder[3]=='2'?2:1
+    hsRes.mbox = Mbox.get(hsRes.payorder.mbox_id)
+    return hsRes
+  }
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////external payment////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -807,9 +993,9 @@ class AccountController {
     hsRes.ownerClient = Client.get(hsRes.mbox.homeowner_cl_id)
     hsRes.resstatModifier = 1.0
     hsRes.ispaypossible = (hsRes.ownerClient?.resstatus==1)
-    hsRes.invoicelife = Tools.getIntVal(ConfigurationHolder.config.payorder.invoicelife.days,5)
+    hsRes.invoicelife = Tools.getIntVal(grailsApplication.config.payorder.invoicelife.days,5)
     if (hsRes.ispaypossible) {
-      hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+      hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
     }
     hsRes.displayPrice = Math.round(hsRes.mboxRec.price_rub / hsRes.valutaRates * hsRes.resstatModifier)
     hsRes.payway = Payway.findAllByModstatus(1)
@@ -821,7 +1007,7 @@ class AccountController {
       hsRes.home=hsRes.home.csiSetEnHome()
       hsRes.ownerUser=hsRes.ownerUser.csiSetEnUser()
     }
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
 
     return hsRes
   }

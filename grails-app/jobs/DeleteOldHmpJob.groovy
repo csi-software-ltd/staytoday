@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class DeleteOldHmpJob {
 	static triggers = {
 		//simple repeatInterval: 30000, repeatCount: 0 //test: execute job once after 30 seconds
-		cron cronExpression: ((ConfigurationHolder.config.deleteOldHmp.cron!=[:])?ConfigurationHolder.config.deleteOldHmp.cron:"0 0 1 * * ?")
+		cron cronExpression: ((Holders.config.deleteOldHmp.cron!=[:])?Holders.config.deleteOldHmp.cron:"0 0 1 * * ?")
 	}
 
 	def execute() {

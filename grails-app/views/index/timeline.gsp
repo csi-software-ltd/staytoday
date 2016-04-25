@@ -114,48 +114,127 @@
                 </g:if></div>
               </td>
               <td colspan="3" class="bg_shadow">
-                <div class="breadcrumbs" xmlns:v="http://rdf.data-vocabulary.org/#">
-                  <span typeof="v:Breadcrumb">
-                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" rel="v:url" property="v:title">${message(code:'label.main')}</a> &#8594;
-                  </span>
-                  <g:if test="${inrequest?.year}"><g:each in="${filterYears}" var="year" status="i"><g:if test="${year==inrequest?.year}"><span typeof="v:Breadcrumb">
-                    <g:link controller="index" action="timeline" base="${context.absolute_lang}" rel="v:url" property="v:title">${Infotext.findByControllerAndAction('index','timeline')['name'+context?.lang]}</g:link> &#8594;
-                  </span>
-                    <g:if test="${inrequest?.blog && inrequest?.blog!='all'}"><g:each in="${filterAuthors}" var="author"><g:if test="${author==inrequest?.blog}"><span typeof="v:Breadcrumb">
-                      <g:link mapping="${'timeline'+context?.lang}" params="${[blog:author]}" rel="v:url" property="v:title">${author}</g:link> &#8594;
-                  </span>
-                    </g:if></g:each></g:if>
-                    <g:if test="${inrequest?.month}"><g:each in="${filterMonths[i]}" var="month" status="j"><g:if test="${(year==curYear?curMonth:12)-inrequest?.month==j}"><span typeof="v:Breadcrumb">
-                      <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year]}" rel="v:url" property="v:title">${year}</g:link> &#8594;
-                  </span>
-                      <g:if test="${inrequest?.day}"><span typeof="v:Breadcrumb">
-                        <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year,month:((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)]}" rel="v:url" property="v:title">${month}</g:link> &#8594;
-                  </span>
-                        <g:if test="${inrequest?.id && article}"><span typeof="v:Breadcrumb">
-                          <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year,month:((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j),day:((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)]}" rel="v:url" property="v:title">${((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)+'.'+((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)+'.'+year}</g:link> &#8594;
-                  </span>
-                  ${article?.title?:''}
-                        </g:if><g:else>${((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)+'.'+((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)+'.'+year}</g:else>
-                      </g:if><g:else>${month}</g:else>
-                    </g:if></g:each></g:if>
-                    <g:else>${year}</g:else>
-                  </g:if></g:each></g:if>
-                  <g:else>                                       
-                    <g:if test="${(inrequest?.blog && inrequest?.blog!='all') || inrequest?.tag}"><span typeof="v:Breadcrumb">
-                      <g:link controller="index" action="timeline" base="${context.absolute_lang}" rel="v:url" property="v:title">${Infotext.findByControllerAndAction('index','timeline')['name'+context?.lang]}</g:link> &#8594;
-                  </span>
-                      <g:if test="${inrequest?.blog && inrequest?.blog!='all'}">
-                        <g:each in="${filterAuthors}" var="author"><g:if test="${author==inrequest?.blog}">
-                          <g:if test="${inrequest?.tag}"><span typeof="v:Breadcrumb">
-                            <g:link mapping="${'timeline'+context?.lang}" params="${[blog:author]}" rel="v:url" property="v:title">${author}</g:link> &#8594;
-                  </span>
-                  ${message(code:'timeline.acticles.group')} ${poptag}
-                          </g:if><g:else>${author}</g:else>
-                        </g:if></g:each>
-                      </g:if><g:else>${message(code:'timeline.acticles.group')} ${poptag}</g:else>                      
-                    </g:if><g:else>${infotext['name'+context?.lang]?:''}</g:else>
-                  </g:else>
-                </div>                                
+                <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" itemprop="item">
+                      <span itemprop="name">${message(code:'label.main')}</span>
+                    </a><meta itemprop="position" content="1" />
+                  </li> &#8594;
+              <g:if test="${inrequest?.year}">
+                <g:each in="${filterYears}" var="year" status="i">
+                  <g:if test="${year==inrequest?.year}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link controller="index" action="timeline" base="${context.absolute_lang}" itemprop="item">
+                      <span itemprop="name">${Infotext.findByControllerAndAction('index','timeline')['name'+context?.lang]}
+                    </g:link><meta itemprop="position" content="2" />
+                  </li> &#8594;
+                    <g:if test="${inrequest?.blog && inrequest?.blog!='all'}">
+                      <g:each in="${filterAuthors}" var="author">
+                        <g:if test="${author==inrequest?.blog}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link mapping="${'timeline'+context?.lang}" params="${[blog:author]}" itemprop="item">
+                      <span itemprop="name">${author}</span>
+                    </g:link><meta itemprop="position" content="3" />
+                  </li> &#8594;
+                        </g:if>
+                      </g:each>
+                    </g:if>
+                    <g:if test="${inrequest?.month}">
+                      <g:each in="${filterMonths[i]}" var="month" status="j">
+                        <g:if test="${(year==curYear?curMonth:12)-inrequest?.month==j}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year]}" itemprop="item">
+                      <span itemprop="name">${year}</span>
+                    </g:link><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?4:3}" />
+                  </li> &#8594;
+                          <g:if test="${inrequest?.day}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year,month:((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)]}" itemprop="item">
+                      <span itemprop="name">${month}</span>
+                    </g:link><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?5:4}" />
+                  </li> &#8594;
+                            <g:if test="${inrequest?.id && article}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link mapping="${'timeline'+context?.lang}" params="${[blog:inrequest?.blog,year:year,month:((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j),day:((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)]}" itemprop="item">
+                      <span itemprop="name">${((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)+'.'+((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)+'.'+year}</span>
+                    </g:link><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?6:5}" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${article?.title?:''}</span>
+                    </span><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?7:6}" />
+                  </li>
+                            </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${((inrequest?.day<10)?'0'+inrequest?.day:inrequest?.day)+'.'+((year==curYear?curMonth:12)-j<10?'0'+((year==curYear?curMonth:12)-j):(year==curYear?curMonth:12)-j)+'.'+year}</span>
+                    </span><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?6:5}" />
+                  </li>
+                            </g:else>
+                          </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${month}</span>
+                    </span><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?5:4}" />
+                  </li>
+                          </g:else>
+                        </g:if>
+                      </g:each>
+                    </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${year}</span>
+                    </span><meta itemprop="position" content="${(inrequest?.blog && inrequest?.blog!='all')?4:3}" />
+                  </li>
+                    </g:else>
+                  </g:if>
+                </g:each>
+              </g:if><g:else>                                       
+                <g:if test="${(inrequest?.blog && inrequest?.blog!='all') || inrequest?.tag}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:link controller="index" action="timeline" base="${context.absolute_lang}" itemprop="item">
+                      <span itemprop="name">${Infotext.findByControllerAndAction('index','timeline')['name'+context?.lang]}
+                    </g:link><meta itemprop="position" content="2" />
+                  </li> &#8594;
+                  <g:if test="${inrequest?.blog && inrequest?.blog!='all'}">
+                    <g:each in="${filterAuthors}" var="author">
+                      <g:if test="${author==inrequest?.blog}">                  
+                        <g:if test="${inrequest?.tag}">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">    
+                    <g:link mapping="${'timeline'+context?.lang}" params="${[blog:author]}" itemprop="item">
+                      <span itemprop="name">${author}</span>
+                    </g:link><meta itemprop="position" content="3" />                  
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${message(code:'timeline.acticles.group')} ${poptag}</span>
+                    </span><meta itemprop="position" content="4" />
+                  </li>
+                        </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${author}</span>
+                    </span><meta itemprop="position" content="3" />
+                  </li>
+                        </g:else>
+                      </g:if>
+                    </g:each>
+                  </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${message(code:'timeline.acticles.group')} ${poptag}</span>
+                    </span><meta itemprop="position" content="3" />
+                  </li>
+                  </g:else>                      
+                </g:if><g:else>
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${infotext['name'+context?.lang]?:''}</span>
+                    </span><meta itemprop="position" content="2" />
+                  </li>
+                </g:else>
+              </g:else>
+                </ul>                                
               </td>
             </tr>            
             <tr>

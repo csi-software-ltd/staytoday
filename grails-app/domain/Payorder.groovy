@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 import org.springframework.context.i18n.LocaleContextHolder as LCH
 class Payorder {
   def searchService
@@ -9,10 +9,9 @@ class Payorder {
     in_paydate(nullable:true)
     in_paynumber(nullable:true)
   }
-  static mapping = {
-    //datasource 'admin'
-    version false
-  }
+
+  static mapping = { version false }
+
   Long id
   String norder
   Integer agr_id
@@ -78,8 +77,8 @@ class Payorder {
     oOrder.paycomtype = _oReserve.paycomtype
     oOrder.userip = _request.userip?:''
     oOrder.summa = _summa
-    oOrder.summa_deal = Math.round(_oMbox.price_rub + _oMbox.price_rub * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))
-    oOrder.summa_val = Math.round(_oMbox.price + _oMbox.price * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))
+    oOrder.summa_deal = Math.round(_oMbox.price_rub + _oMbox.price_rub * (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100))
+    oOrder.summa_val = Math.round(_oMbox.price + _oMbox.price * (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100))
     oOrder.valuta_id = _oMbox.valuta_id
     if (oPrevOrder) {
       oOrder.plat_name = oPrevOrder.plat_name
@@ -157,6 +156,28 @@ class Payorder {
     return oOrder.save()
   }
 
+  static def createOrder( _request, Reserve _oReserve, _summa){
+    def oOrder = new Payorder()
+    oOrder.agr_id = Payway.get(_request.payway)?.agr_id
+    oOrder.user_id = _request.user.id
+    oOrder.client_id = 0
+    oOrder.home_id = 0
+    oOrder.mbox_id = 0
+    oOrder.payway_id = _request.payway
+    oOrder.reserve_id = _oReserve.id
+    oOrder.paycomtype = _oReserve.paycomtype
+    oOrder.userip = _request.userip?:''
+    oOrder.summa = _summa
+    oOrder.summa_deal = _summa
+    oOrder.summa_val = _summa
+    oOrder.valuta_id = 857
+
+    def cur_orderId = Payorder.list(max:1,sort:'id',order:'desc')[0]?.id?:0
+    oOrder.norder = Tools.generateNorder(cur_orderId+1,2)
+
+    return oOrder.save()
+  }
+
   def moneyEarningsOrderUpdate(_summa){
     summa_int = _summa
     modstatus = 1
@@ -209,7 +230,7 @@ class Payorder {
     dealstatus = 1
     modstatus = 2
     findate = new Date()
-    bonusend = new Date() + Tools.getIntVal(ConfigurationHolder.config.promote.bonusforbron.days,10) + 1
+    bonusend = new Date() + Tools.getIntVal(Holders.config.promote.bonusforbron.days,10) + 1
     return save(failOnError:true)
   }
 
@@ -276,6 +297,14 @@ class Payorder {
   def changeHomeOldInternOrderUpdate(_summa){
     summa_int -= _summa
     modstatus = 2
+    return save(failOnError:true)
+  }
+
+  def doConfirmation(_summa){
+    summa_com = _summa
+    modstatus = 2
+    confstatus = 1
+    dealstatus = 1
     return save(failOnError:true)
   }
 

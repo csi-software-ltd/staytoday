@@ -1,8 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class GCJob {
   static triggers = {
     //simple repeatInterval: 200000 // execute job once in 200 seconds
-    cron cronExpression: ((ConfigurationHolder.config.gc.cron!=[:])?ConfigurationHolder.config.gc.cron.trim():"0 0 9 ? * MON")
+    cron cronExpression: ((Holders.config.gc.cron!=[:])?Holders.config.gc.cron.trim():"0 0 9 ? * MON")
   }
 
     def execute() {

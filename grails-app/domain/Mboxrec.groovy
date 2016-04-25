@@ -39,6 +39,10 @@ class Mboxrec {
   Integer valuta_id
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+  def afterInsert() {
+    if(is_answer&&answertype_id in [1,2,3,4,5,7,9]) Mbox.withNewSession{ Mbox.get(mbox_id)?.updateRating(Tools.getIntVal(Dynconfig.findByName(answertype_id==1?'mbox.rating.mb_offer':answertype_id==2?'mbox.rating.mb_specoffer':answertype_id in 3..5?'mbox.rating.mb_decline':answertype_id==7?'mbox.rating.mb_bookconfirm':'mbox.rating.mb_cancel')?.value,0))?.save(flush:true) }
+  }
+
   Mboxrec setmboxData(_oMbox){
     mbox_id = _oMbox.id
     answertype_id = 0

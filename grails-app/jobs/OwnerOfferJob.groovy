@@ -1,11 +1,10 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class OwnerOfferJob {
 	def mailerService
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
     //simple repeatInterval: 30000, repeatCount: 0 //test: execute job once after 30 seconds
-		cron cronExpression: ((ConfigurationHolder.config.owneroffer.cron!=[:])?ConfigurationHolder.config.owneroffer.cron:"0 15 0/1 * * ?")
+		cron cronExpression: ((Holders.config.owneroffer.cron!=[:])?Holders.config.owneroffer.cron:"0 15 0/1 * * ?")
 	}
 
 	def execute() {
@@ -15,7 +14,7 @@ class OwnerOfferJob {
 		for (mbox in aMbox) {
 			tmpMboxrec = Mboxrec.findAllByMbox_idAndAnswertype_idInList(mbox.id,[1,2],[max:1, sort:'inputdate',order:'desc'])
 			if(tmpMboxrec.size()>0){
-				if (tmpMboxrec[0].inputdate.getTime()<new Date().getTime()-Tools.getIntVal(ConfigurationHolder.config.mbox.specofferlife.minutes,120)*60*1000){
+				if (tmpMboxrec[0].inputdate.getTime()<new Date().getTime()-Tools.getIntVal(Holders.config.mbox.specofferlife.minutes,120)*60*1000){
 					try{
 						mbox.modstatus = 1
 						mbox.save(flush:true)
@@ -30,7 +29,7 @@ class OwnerOfferJob {
 				}
 			}
 		}
-		tmpMboxrec = Mboxrec.findAllByAnswertype_idInListAndInputdateLessThan([1,2],new Date(new Date().getTime()-Tools.getIntVal(ConfigurationHolder.config.mbox.specofferlife.minutes,120)*60*1000))
+		tmpMboxrec = Mboxrec.findAllByAnswertype_idInListAndInputdateLessThan([1,2],new Date(new Date().getTime()-Tools.getIntVal(Holders.config.mbox.specofferlife.minutes,120)*60*1000))
 		tmpMboxrec.each{
 			try{
 				it.answertype_id = 6

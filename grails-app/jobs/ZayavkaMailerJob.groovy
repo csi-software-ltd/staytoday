@@ -1,10 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class ZayavkaMailerJob {
   def mailerService
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.zayavkamailer.cron!=[:])?ConfigurationHolder.config.zayavkamailer.cron:"0 0/15 * * * ?")
+		cron cronExpression: ((Holders.config.zayavkamailer.cron!=[:])?Holders.config.zayavkamailer.cron:"0 0/15 * * * ?")
 	}
 
 	def execute() {

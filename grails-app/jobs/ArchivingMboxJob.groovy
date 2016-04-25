@@ -1,14 +1,13 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class ArchivingMboxJob {
 	static triggers = {
 		//simple repeatInterval: 200000 // execute job once in 200 seconds
-		cron cronExpression: ((ConfigurationHolder.config.archivingMbox.cron!=[:])?ConfigurationHolder.config.archivingMbox.cron:"0 0 4 * * ?")
+		cron cronExpression: ((Holders.config.archivingMbox.cron!=[:])?Holders.config.archivingMbox.cron:"0 0 4 * * ?")
 	}
 
 	def execute() {
 		log.debug("LOG>> ArchivingMboxJob: start")
-		/*def lsMbox = Mbox.findAllByModdateLessThanAndModstatusNotEqual(new Date()-Tools.getIntVal(ConfigurationHolder.config.archivingMbox.mboxlife.days,30),6)
+		/*def lsMbox = Mbox.findAllByModdateLessThanAndModstatusNotEqual(new Date()-Tools.getIntVal(Holders.config.archivingMbox.mboxlife.days,30),6)
 		lsMbox.each{
 			try{
 				it.modstatus = 6

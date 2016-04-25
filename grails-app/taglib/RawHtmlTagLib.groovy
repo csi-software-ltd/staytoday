@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class RawHtmlTagLib {
 
   def rawHtml = { attrs, body ->
@@ -14,7 +14,7 @@ class RawHtmlTagLib {
 
   def userName = { attrs, body ->
     out << body().replace('.','·').replace('@','<img class="favicon" src="'+
-        ConfigurationHolder.config.grails.serverURL+'/images/favicon.gif" border="0">')
+        grailsApplication.config.grails.serverURL+'/images/favicon.gif" border="0">')
   }
   
   def shortString = { attrs ->

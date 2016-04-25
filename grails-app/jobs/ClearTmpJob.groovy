@@ -1,16 +1,16 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class ClearTmpJob {
   static triggers = {
-    simple repeatInterval: Tools.getIntVal(ConfigurationHolder.config.pic.clear.timeout,900000) // execute job once in 900 seconds
+    simple repeatInterval: Tools.getIntVal(Holders.config.pic.clear.timeout,900000) // execute job once in 900 seconds
   }
 
   def execute() {
     //TODO move into service
     //TODO!!! DELETE PICS ONLY AFTER MODERATION NEW
-    //TODO WHAT THE HELL?!! ConfigurationHolder.config.*deskcat*.timelife
+    //TODO WHAT THE HELL?!! Holders.config.*deskcat*.timelife
     def oPicturetemp=new Picturetemp() 
-    def lsFiles=oPicturetemp.csiGetFilesForDelete(Tools.getIntVal(ConfigurationHolder.config.timelifepic,(60*15)))
-    def lsBadFiles=oPicturetemp.csiGetOldFiles(Tools.getIntVal(ConfigurationHolder.config.timelifepic,(60*15)))
+    def lsFiles=oPicturetemp.csiGetFilesForDelete(Tools.getIntVal(Holders.config.timelifepic,(60*15)))
+    def lsBadFiles=oPicturetemp.csiGetOldFiles(Tools.getIntVal(Holders.config.timelifepic,(60*15)))
     //println(lsFiles)
     def fileRemove
     def lsIds=[]

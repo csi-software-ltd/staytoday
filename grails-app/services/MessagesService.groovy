@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.ConfigurationHolder
 class MessagesService {
 
   static transactional = false

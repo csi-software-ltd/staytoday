@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class HomeController {
   def requestService
@@ -26,7 +26,7 @@ class HomeController {
 
     return hsRes
   }
-  def search = {    
+  def search = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)
     def sWhere=requestService.getStr('where')
@@ -60,10 +60,9 @@ class HomeController {
     return
   }
   /////////////////////////////////////////////////////////////////////////////////////  
-  def s = {    
+  def s = {
     requestService.init(this)    
     def hsRes=requestService.getContextAndDictionary(true)
-    
     def sWhere=requestService.getStr('where')
     def oCity = City.get(Sphinx.searchCityBySphinxLimit(sWhere,log,hsRes.context?.lang).ids[0])
     def iMetro_id = requestService.getIntDef('metro_id',0)
@@ -81,17 +80,17 @@ class HomeController {
         redirect(mapping:"hSearchRoom"+hsRes.context?.lang,params:params+[country:Country.get(oCity?.country_id)?.urlname,type_url:'flats']-[homeperson_id:'1',hometype_id:params.hometype_id,homeclass_id:params.homeclass_id],permanent:true)
       else if(iCitySight_id)
         redirect(mapping:"hSearchCitysight"+hsRes.context?.lang,params:params+[country:Country.get(oCity?.country_id)?.urlname,citysight_url:Citysight.get(iCitySight_id)?.urlname]-[citysight_id:iCitySight_id.toString(),homeperson_id:'1',hometype_id:'0',homeclass_id:params.homeclass_id],permanent:true)
-      else if ((iType_id && iType_id!=1 && Hometype.get(iType_id)) || !iType_id)
+      else if ((iType_id && iType_id!=1 && Hometype.get(iType_id)) || (!iType_id && requestService.getStr('type_url')))
         redirect(mapping:"hSearchType"+hsRes.context?.lang,params:params+[country:Country.get(oCity?.country_id)?.urlname,type_url:Hometype.get(iType_id)?.urlname?:'all']-[hometype_id:params.hometype_id,homeperson_id:'1',homeclass_id:params.homeclass_id],permanent:true)
       else
-        redirect(mapping:"hSearch"+hsRes.context?.lang,params:params+[country:Country.get(oCity?.country_id)?.urlname]-[hometype_id:params.hometype_id,homeperson_id:'1',homeclass_id:params.homeclass_id],permanent:true)      
+        redirect(mapping:"hSearch"+hsRes.context?.lang,params:params+[country:Country.get(oCity?.country_id)?.urlname]-[hometype_id:params.hometype_id,homeperson_id:'1',homeclass_id:params.homeclass_id],permanent:true)
     } else {
       if (iBedroom&&iType_id==1)
         redirect(mapping:"cSearchRoom"+hsRes.context?.lang,params:params-[hometype_id:params.hometype_id,homeperson_id:'1',view:'list',homeclass_id:params.homeclass_id]+[type_url:Hometype.get(iType_id)?.urlname],permanent:true)
       else if (iType_id)
         redirect(mapping:"cSearchType"+hsRes.context?.lang,params:params-[hometype_id:params.hometype_id,homeperson_id:'1',view:'list',homeclass_id:params.homeclass_id]+[type_url:Hometype.get(iType_id)?.urlname],permanent:true)
       else
-        redirect(action:'list',params:params-[homeperson_id:'1',view:'list',homeclass_id:params.homeclass_id],base:hsRes.context?.mainserverURL_lang,permanent:true)        
+        redirect(action:'list',params:params-[homeperson_id:'1',view:'list',homeclass_id:params.homeclass_id],base:hsRes.context?.mainserverURL_lang,permanent:true)
     }
     return
   }
@@ -114,6 +113,7 @@ class HomeController {
     hsRes.inrequest.is_map=requestService.getLongDef('is_map',0)
     hsRes.inrequest.search_in_map=requestService.getLongDef('search_in_map',0)
     hsRes.alike=requestService.getIntDef('alike',0)
+
     if (hsRes.inrequest.hometype_id&&!Hometype.get(hsRes.inrequest.hometype_id)) {
       response.sendError(404)
       return
@@ -260,7 +260,7 @@ class HomeController {
     }
     
     hsRes+=searchService._getMapFilter(hsRes.hsFilter,Math.round(coordinates[0]).toLong(),Math.round(coordinates[1]).toLong(),Math.round(coordinates[2]).toLong(),Math.round(coordinates[3]).toLong())
-    hsRes.inrequest.max=Tools.getIntVal(ConfigurationHolder.config.search.listing.max,30)
+    hsRes.inrequest.max=Tools.getIntVal(grailsApplication.config.search.listing.max,30)
 
     flash.error=[]
     if(hsRes.inrequest.price_min>hsRes.inrequest.price_max){
@@ -370,7 +370,7 @@ class HomeController {
     else if((hsRes.country?:[]).size()>0)
   	  hsRes.region=Region.findAll('FROM Region WHERE country_id=:country_id ORDER BY regorder DESC, name',[country_id:hsRes.country[0].id])	  
 	  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto    
+    hsRes.urlphoto = grailsApplication.config.urlphoto    
 
     def hc_ids=[] //owner Marina
     for(homeclass_id in hsRes.inrequest?.homeclass_id)
@@ -380,9 +380,9 @@ class HomeController {
     hsRes.homeroom=Homeroom.list([sort:'id'])
     hsRes.homebath=Homebath.list([sort:'id'])        
 
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
-    hsRes.listBannerLine = Tools.getIntVal(ConfigurationHolder.config.search.bannerLineNumber.list,5)
-    hsRes.photoBannerLine = Tools.getIntVal(ConfigurationHolder.config.search.bannerLineNumber.photo,3)
+    hsRes.urlphoto = grailsApplication.config.urlphoto
+    hsRes.listBannerLine = Tools.getIntVal(grailsApplication.config.search.bannerLineNumber.list,5)
+    hsRes.photoBannerLine = Tools.getIntVal(grailsApplication.config.search.bannerLineNumber.photo,3)
     hsRes.linkparams = { map, linkname ->
       hsRes.string?.date_start?map+=[date_start:hsRes.string?.date_start]:'';
       hsRes.string?.date_end?map+=[date_end:hsRes.string?.date_end]:'';      
@@ -403,11 +403,11 @@ class HomeController {
     for(i=(hsRes?.valuta?.min?:100);i<=(hsRes?.valuta?.max?:5000);i=i+(hsRes?.valuta?.step?:100))
       hsRes.arr<<i;	       
 
-    hsRes.searchFilterMax=(Tools.getIntVal(ConfigurationHolder.config.search.filter_option.max,5)>=(hsRes.option_filter?:[]).size())?(hsRes.option_filter?:[]).size():Tools.getIntVal(ConfigurationHolder.config.search.filter_option.max,5)
-    hsRes.searchFilterDistrictMax=(Tools.getIntVal(ConfigurationHolder.config.search.filter_option_district.max,3)>=(hsRes.district?:[]).size())?(hsRes.district?:[]).size():Tools.getIntVal(ConfigurationHolder.config.search.filter_option_district.max,3)
-    hsRes.searchFilterMetroMax=(Tools.getIntVal(ConfigurationHolder.config.search.filter_option_metro.max,3)>=(hsRes.metro?:[]).size())?(hsRes.metro?:[]).size():Tools.getIntVal(ConfigurationHolder.config.search.filter_option_metro.max,3)
-    hsRes.searchFilterCitysightMax=(Tools.getIntVal(ConfigurationHolder.config.search.filter_option_citysight.max,3)>=(hsRes.citysightMax?:[]).size())?(hsRes.citysightMax?:[]).size():Tools.getIntVal(ConfigurationHolder.config.search.filter_option_citysight.max,3)
-    hsRes.homeMetroMinCount = Tools.getIntVal(ConfigurationHolder.config.search.metroDisplayCountHome.min,5)
+    hsRes.searchFilterMax=(Tools.getIntVal(grailsApplication.config.search.filter_option.max,5)>=(hsRes.option_filter?:[]).size())?(hsRes.option_filter?:[]).size():Tools.getIntVal(grailsApplication.config.search.filter_option.max,5)
+    hsRes.searchFilterDistrictMax=(Tools.getIntVal(grailsApplication.config.search.filter_option_district.max,3)>=(hsRes.district?:[]).size())?(hsRes.district?:[]).size():Tools.getIntVal(grailsApplication.config.search.filter_option_district.max,3)
+    hsRes.searchFilterMetroMax=(Tools.getIntVal(grailsApplication.config.search.filter_option_metro.max,3)>=(hsRes.metro?:[]).size())?(hsRes.metro?:[]).size():Tools.getIntVal(grailsApplication.config.search.filter_option_metro.max,3)
+    hsRes.searchFilterCitysightMax=(Tools.getIntVal(grailsApplication.config.search.filter_option_citysight.max,3)>=(hsRes.citysightMax?:[]).size())?(hsRes.citysightMax?:[]).size():Tools.getIntVal(grailsApplication.config.search.filter_option_citysight.max,3)
+    hsRes.homeMetroMinCount = Tools.getIntVal(grailsApplication.config.search.metroDisplayCountHome.min,5)
     
     hsRes.districtMax=(hsRes.districtMax?:[]).sort{it.total}.reverse()
     
@@ -506,8 +506,9 @@ class HomeController {
     hsRes.infotags.homerooms = Homeroom.get(hsRes.inrequest.bedroom?:0)?(Homeroom.get(hsRes.inrequest.bedroom?:0)['name3'+hsRes.context?.lang]?:''):''
     hsRes.infotags.homeroomss = Homeroom.get(hsRes.inrequest.bedroom?:0)?(Homeroom.get(hsRes.inrequest.bedroom?:0)['name'+(hsRes.context?.lang?'3_en':'4')]?:''):''     
     hsRes.infotags.homeroom2 = Homeroom.get(hsRes.inrequest.bedroom?:0)?(Homeroom.get(hsRes.inrequest.bedroom?:0)['name'+(hsRes.context?.lang?'3_en':'5')]?:''):''
+    hsRes.infotags.homeroom6 = Homeroom.get(hsRes.inrequest.bedroom?:0)?(Homeroom.get(hsRes.inrequest.bedroom?:0)['name'+(hsRes.context?.lang?'3_en':'6')]?:''):''
 
-    if (request.getHeader("User-Agent")?.contains('Mobile')) {
+    if (request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad')) {
       if (hsRes.infotags.isfound) {
         redirect(mapping:(hsRes.inrequest?.metro_id?:[]).size()==1?('hSearchMetro'+hsRes.context?.lang):hsRes.inrequest?.bedroom?('hSearchRoom'+hsRes.context?.lang):(hsRes.inrequest?.citysight_id?:[]).size()==1?('hSearchCitysight'+hsRes.context?.lang):hsRes.inrequest?.hometype_id!=1?('hSearchType'+hsRes.context?.lang):('hSearch'+hsRes.context?.lang),params:[where:hsRes.breadcrumbs.city?.('name'+hsRes.context?.lang)?:'',country:hsRes.breadcrumbs?.country?.urlname?:'']+((hsRes.inrequest?.bedroom && !((hsRes.inrequest?.metro_id?:[]).size()==1))?[bedroom:hsRes.inrequest?.bedroom,type_url:'flats']:[:])+((hsRes.inrequest?.bedroom && (hsRes.inrequest?.metro_id?:[]).size()==1)?[bedroom:hsRes.inrequest?.bedroom]:[:])+((hsRes.inrequest?.metro_id?:[]).size()==1?[metro_url:Metro.get(hsRes.inrequest?.metro_id[0])?.urlname]:[:])+((hsRes.inrequest?.citysight_id?:[]).size()==1&&!hsRes.inrequest?.bedroom?[citysight_url:Citysight.get(hsRes.inrequest?.citysight_id[0])?.urlname]:[:])+((hsRes.inrequest?.citysight_id?:[]).size()==1&&hsRes.inrequest?.bedroom?[citysight_id:hsRes.inrequest?.citysight_id[0]]:[:])+((hsRes.inrequest?.district_id?:[]).size()==1?[district_id:hsRes.inrequest?.district_id[0]]:[:])+(hsRes.inrequest?.hometype_id!=1 && !((hsRes.inrequest?.metro_id?:[]).size()==1 || (hsRes.inrequest?.citysight_id?:[]).size()==1)?[type_url:hsRes.breadcrumbs.hometype?.urlname?:'all']:[:])+(hsRes.inrequest?.hometype_id && ((hsRes.inrequest?.metro_id?:[]).size()==1 || ((hsRes.inrequest?.citysight_id?:[]).size()==1)&&!hsRes.inrequest?.bedroom)?[hometype_id:hsRes.inrequest.hometype_id]:[:])+(hsRes.inrequest?.longdiscount?[longdiscount:hsRes.inrequest?.longdiscount]:[:])+(hsRes.inrequest?.hotdiscount?[hotdiscount:hsRes.inrequest?.hotdiscount]:[:]),base:hsRes.context?.mobileURL,permanent:true)
         return
@@ -537,12 +538,12 @@ class HomeController {
             where h.modstatus=1 and h.city_id!=0 and h.city_id=c.id
             group by h.city_id
             having count(h.id) > :minCount
-            order by c.name""",["minCount":(Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.minCityCount,5) as long)])
+            order by c.name""",["minCount":(Tools.getIntVal(grailsApplication.config.index.cityTagCloud.minCityCount,5) as long)])
       hsRes.tagcloud = tagList.inject([:]){map,tag -> map[hsRes.context?.lang?tag[4]:tag[0]]=[count:tag[1],is_index:tag[2],domain:tag[3],name2:hsRes.context?.lang?tag[4]:tag[5]];map}
     }
     hsRes.tagcloudParams = [:]
-    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
        
     def lsRecIds = []
     hsRes.records.each{lsRecIds<<it.hid}
@@ -586,7 +587,7 @@ class HomeController {
     }
 
     hsRes.lsShome=Shome.findAll("FROM Shome WHERE city_id=:city_id AND modstatus=1",[city_id:City.findByDomain(request.serverName)?.id?:0])//AND homecount>0
-    hsRes.homecount=Tools.getIntVal(ConfigurationHolder.config.home.list.apartment_type.homecount.min,1)
+    hsRes.homecount=Tools.getIntVal(grailsApplication.config.home.list.apartment_type.homecount.min,1)
     
     if(hsRes.context?.lang)
       homeService.generateInfotagsLang(hsRes)
@@ -644,7 +645,7 @@ class HomeController {
     //<<   
     
     hsRes+=searchService._getMapFilter(hsRes.hsFilter,Math.round(coordinates[0]).toLong(),Math.round(coordinates[1]).toLong(),Math.round(coordinates[2]).toLong(),Math.round(coordinates[3]).toLong())
-    hsRes.inrequest.max=Tools.getIntVal(ConfigurationHolder.config.search.listing.max,30)
+    hsRes.inrequest.max=Tools.getIntVal(grailsApplication.config.search.listing.max,30)
     
     flash.error=[]
     if(hsRes.inrequest.price_min>hsRes.inrequest.price_max){
@@ -696,9 +697,9 @@ class HomeController {
       if (hsRes.hometype_id)//grails bug :( fixed only in 2.2 version
         hsRes.hometypeFilter = Hometype.getAll(hsRes.hometype_id)
     }
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto           
-    hsRes.listBannerLine = Tools.getIntVal(ConfigurationHolder.config.search.bannerLineNumber.list,5)
-    hsRes.photoBannerLine = Tools.getIntVal(ConfigurationHolder.config.search.bannerLineNumber.photo,3)
+    hsRes.urlphoto = grailsApplication.config.urlphoto           
+    hsRes.listBannerLine = Tools.getIntVal(grailsApplication.config.search.bannerLineNumber.list,5)
+    hsRes.photoBannerLine = Tools.getIntVal(grailsApplication.config.search.bannerLineNumber.photo,3)
     hsRes.linkparams = { map, linkname ->
       hsRes.string?.date_start?map+=[date_start:hsRes.string?.date_start]:'';
       hsRes.string?.date_end?map+=[date_end:hsRes.string?.date_end]:'';
@@ -752,7 +753,7 @@ class HomeController {
     def hsRes=requestService.getContextAndDictionary(true)
     def country_id=requestService.getIntDef('country_id',1)
     hsRes.data = Popdirection.findAll('FROM Popdirection WHERE country_id=:country_id AND modstatus=1 ORDER BY rating desc, name2 asc',[country_id:country_id?:1])
-    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(ConfigurationHolder.config.popdirection.quantity,10)])
+    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(grailsApplication.config.popdirection.quantity,10)])
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
     hsRes.countries = Country.list()
@@ -763,7 +764,7 @@ class HomeController {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)
     def country_id=requestService.getIntDef('country_id',1)
-    hsRes.data = City.findAll('FROM City WHERE country_id=:country_id AND homecount>10 ORDER BY case when homecount>:homecountsort then homecount else 0 end desc, name asc',[country_id:country_id?:1,homecountsort:Tools.getIntVal(ConfigurationHolder.config.popcities.homecountsort,70)])
+    hsRes.data = City.findAll('FROM City WHERE country_id=:country_id AND homecount>10 ORDER BY case when homecount>:homecountsort then homecount else 0 end desc, name asc',[country_id:country_id?:1,homecountsort:Tools.getIntVal(grailsApplication.config.popcities.homecountsort,70)])
     hsRes.countries = Country.findAllByIs_popcities(1)
     return hsRes
   }
@@ -861,7 +862,7 @@ class HomeController {
     }         
     
     hsRes+=searchService._getMapFilter(hsRes.hsFilter,Math.round(coordinates[0]).toLong(),Math.round(coordinates[1]).toLong(),Math.round(coordinates[2]).toLong(),Math.round(coordinates[3]).toLong())
-    hsRes.inrequest.max=Tools.getIntVal(ConfigurationHolder.config.search.listing.max,30)
+    hsRes.inrequest.max=Tools.getIntVal(grailsApplication.config.search.listing.max,30)
 	
     def bDateFlag=true
     if(hsRes.inrequest.date_start){
@@ -936,7 +937,7 @@ class HomeController {
       hsRes.alikeDistances = oHomeSearch.calcDistance(hsRes.records, hsRes.alike)
     }
 	  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto 
+    hsRes.urlphoto = grailsApplication.config.urlphoto 
     
     hsRes.hsFilter.price_min=requestService.getLongDef('price_min',0)
     hsRes.hsFilter.price_max=requestService.getLongDef('price_max',0)    
@@ -972,15 +973,15 @@ class HomeController {
 
     hsRes.home = Home.read(lId)
 
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.coordRange = Tools.getIntVal(ConfigurationHolder.config.home.view.alike.coordinates.range,20000)
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.coordRange = Tools.getIntVal(grailsApplication.config.home.view.alike.coordinates.range,20000)
     hsRes.is_map=requestService.getLongDef('is_map',0)
     hsRes.inrequest.date_start=requestService.getStr('date_start')
     hsRes.inrequest.date_end=requestService.getStr('date_end')
     hsRes.inrequest.homeperson_id = requestService.getIntDef('homeperson_id',1)
     hsRes.inrequest.mtext = requestService.getStr('mtext')
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if(hsRes.inrequest?.date_start?:'')
       hsRes.inrequest.date_start=Date.parse(DATE_FORMAT, hsRes.inrequest?.date_start)
     if(hsRes.inrequest?.date_end?:'')
@@ -1024,7 +1025,7 @@ class HomeController {
         return
       }
 
-      if(request.getHeader("User-Agent")?.contains('Mobile')){
+      if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad')){
         redirect(mapping:'hView'+hsRes.context?.lang,params:[country:Country.get(hsRes.home.country_id)?.urlname,city:hsRes.home.city,linkname:hsRes.home.linkname],base:hsRes.context?.mobileURL,permanent:true)
         return
       }
@@ -1158,13 +1159,13 @@ class HomeController {
       hsRes.maxday=Rule_maxday.list()
       hsRes.timein=Rule_timein.list()
       hsRes.timeout=Rule_timeout.list()
-      hsRes.photourl = ConfigurationHolder.config.urlphoto + hsRes.home.client_id.toString()+'/'
-      hsRes.alikephotourl = ConfigurationHolder.config.urlphoto
+      hsRes.photourl = grailsApplication.config.urlphoto + hsRes.home.client_id.toString()+'/'
+      hsRes.alikephotourl = grailsApplication.config.urlphoto
       hsRes.service=requestService.getLongDef('service',0)
       hsRes.gmt=Gmt.findAll('FROM Gmt ORDER BY id')
-      hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-      hsRes.onlinetimediff = Tools.getIntVal(ConfigurationHolder.config.onlinetimediff,5)*60*1000
-      hsRes.notactiveUserParam = Tools.getIntVal(ConfigurationHolder.config.notactiveUserParam,30)*24*60*60
+      hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+      hsRes.onlinetimediff = Tools.getIntVal(grailsApplication.config.onlinetimediff,5)*60*1000
+      hsRes.notactiveUserParam = Tools.getIntVal(grailsApplication.config.notactiveUserParam,30)*24*60*60
       hsRes.discounts = hsRes.home.csiGetHomeDiscounts()
       hsRes.curdiscount = hsRes.home.csiGetDisplayDiscount(hsRes.inrequest?.date_start?:null,hsRes.inrequest?.date_end?:null)
       hsRes.responseStat = hsRes.ownerUsers[0]?.csiGetResponseStat()
@@ -1207,13 +1208,13 @@ class HomeController {
       }
     }
     if(newFlag){
-      if(sCookie.split(',').size()>=Tools.getIntVal(ConfigurationHolder.config.cookie.home.last_visited.max,4)){
+      if(sCookie.split(',').size()>=Tools.getIntVal(grailsApplication.config.cookie.home.last_visited.max,4)){
         def i=0
         def sTmp=''
         for(sCook in sCookie.split(',')){
           if(i==1)
             sTmp=sCook
-          else if(i>0 && i<Tools.getIntVal(ConfigurationHolder.config.cookie.home.last_visited.max,4))
+          else if(i>0 && i<Tools.getIntVal(grailsApplication.config.cookie.home.last_visited.max,4))
             sTmp+=','+sCook
           i++
         }
@@ -1224,7 +1225,7 @@ class HomeController {
       else
         sCookie=lId.toString()
     }
-    requestService.setCookie(COOKIENAME,sCookie,Tools.getIntVal(ConfigurationHolder.config.user.timeout,259200))
+    requestService.setCookie(COOKIENAME,sCookie,Tools.getIntVal(grailsApplication.config.user.timeout,259200))
     hsRes.metro=[]
     def lsHMetro=Homemetro.findAllWhere(home_id:lId)
     for(metro in lsHMetro)
@@ -1235,8 +1236,8 @@ class HomeController {
           where c.region_id=r.id and r.popdirection_id=:p_id and c.homecount>0 and c.id!=:c_id
           order by c.name""",[p_id:hsRes.breadcrumbs.direction?.id?:0,c_id:hsRes.home?.city_id.toInteger()?:0]).inject([:]){map,tag -> map[tag[hsRes.context?.lang?4:0]]=[count:tag[1],is_index:tag[2],domain:tag[3]];map}
     hsRes.tagcloudParams = [:]
-    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
 
     return hsRes
   }
@@ -1247,7 +1248,7 @@ class HomeController {
     hsRes.inrequest=[:]
     def lId=requestService.getLongDef('id',0)	
     hsRes.home = Home.read(lId)	
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     if(hsRes.home){
       if (hsRes.user?.client_id != hsRes.home.client_id && hsRes.home.modstatus !=1 && session?.admin?.id==null) {		
         redirect(controller:'index', action:'index',base:hsRes.context?.mainserverURL_lang)
@@ -1284,14 +1285,14 @@ class HomeController {
       hsRes.maxday=Rule_maxday.findAll('FROM Rule_maxday')
       hsRes.timein=Rule_timein.findAll('FROM Rule_timein')
       hsRes.timeout=Rule_timeout.findAll('FROM Rule_timeout')
-      hsRes.photourl = ConfigurationHolder.config.urlphoto + hsRes.home.client_id.toString()+'/'
+      hsRes.photourl = grailsApplication.config.urlphoto + hsRes.home.client_id.toString()+'/'
     } else {	
       redirect(controller:'index', action:'index',base:hsRes.context?.mainserverURL_lang)
       return
     }
 
     def oUcommentSearch = new UcommentSearch()
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     hsRes+=oUcommentSearch.csiSelectUcommentsForHome(lId,120,requestService.getOffset())
     
     hsRes.metro=[]
@@ -1337,6 +1338,11 @@ class HomeController {
     def lId=requestService.getLongDef('id',0)	
     hsRes.home = Home.read(lId)
 
+    if(!hsRes.home){
+      response.sendError(404)
+      return
+    }
+
     if(hsRes.context?.lang){
       hsRes.home = hsRes.home.csiSetEnHome()                                
     }    
@@ -1349,9 +1355,15 @@ class HomeController {
     requestService.init(this)  
     def hsRes=requestService.getContextAndDictionary(false,true,true) 
     hsRes.inrequest=[:]
-    //def lId=requestService.getLongDef('id',0)	
+
     hsRes+=requestService.getParams(null,['id'],['pointA','pointB'])
     hsRes.home = Home.get(hsRes.inrequest?.id)
+
+    if(!hsRes.home){
+      response.sendError(404)
+      return
+    }
+
     hsRes.metro=[]
     def lsHMetro=Homemetro.findAllWhere(home_id:hsRes.inrequest?.id) 
     for(metro in lsHMetro)
@@ -1485,7 +1497,7 @@ class HomeController {
       response.sendError(404)
       return
     }
-    hsRes.vk_api_key=ConfigurationHolder.config.vk.APIKey
+    hsRes.vk_api_key=grailsApplication.config.vk.APIKey
     hsRes+=requestService.getParams(['hometype_id','homeperson_id','country_id','region_id','term','price','valuta_id','pindex','usage'],[],['title','description','city','district','street','email','homenumber','date_start','date_end'])
     if(hsRes.inrequest?.date_start?:'')
       hsRes.inrequest.date_start=Date.parse(DATE_FORMAT, hsRes.inrequest?.date_start)
@@ -1495,8 +1507,8 @@ class HomeController {
     hsRes.homeperson=Homeperson.findAll('FROM Homeperson')
     hsRes.country=Country.findAll('FROM Country ORDER BY regorder')
     hsRes.valuta=Valuta.findAll('FROM Valuta WHERE modstatus=1 ORDER BY regorder')
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if(hsRes.inrequest?.country_id?:0){
       hsRes.region=Region.findAll('FROM Region WHERE country_id=:country_id ORDER BY regorder DESC, name',[country_id:hsRes.inrequest?.country_id])
       /*if(hsRes.inrequest?.region_id?:0){	  
@@ -1510,7 +1522,7 @@ class HomeController {
       hsRes.inrequest.email = oUser?.email?:''
     }
 
-    hsRes.urlvideo=ConfigurationHolder.config.urlvideolesson
+    hsRes.urlvideo=grailsApplication.config.urlvideolesson
     hsRes.lessons=Video_lesson.findAll('FROM Video_lesson WHERE type_id=1 ORDER BY nomer ASC')    
     
     hsRes.popdirection=Popdirection.findAllByModstatusAndIs_main(1,1,[sort:'rating',order:'desc'])    
@@ -1732,7 +1744,7 @@ class HomeController {
         }
         if(bSave){ 
           def lHomeId=0
-		  def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+		  def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
 		  if (hsRes.inrequest?.description.size()>stringlimit) hsRes.inrequest?.description = hsRes.inrequest?.description.substring(0, stringlimit)
           def oHome=new Home(hsRes.inrequest,lId)	
           if(!oHome.save(flush:true)) {
@@ -1803,7 +1815,7 @@ class HomeController {
               }else{
                 if(oUser.provider=='vkontakte'){
                   def aVk_id = oUser.openid.split('_')
-                  def sStr=ConfigurationHolder.config.vk.APIKey+aVk_id[1].toString()+ConfigurationHolder.config.vk.SecretKey
+                  def sStr=grailsApplication.config.vk.APIKey+aVk_id[1].toString()+grailsApplication.config.vk.SecretKey
                   flash.home_id=lHomeId
                   redirect(controller:'user', action:'vk',params:[vk_id:aVk_id[1],vk_hash:(sStr).encodeAsMD5()],base:hsRes.context?.mainserverURL_lang)
                   return
@@ -1856,7 +1868,7 @@ class HomeController {
         redirect(action:'view', id:hsRes.inrequest?.home_id,base:hsRes.context?.mainserverURL_lang)
         return
       }
-      def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+      def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
       if (hsRes.inrequest?.comtext.size()>stringlimit) hsRes.inrequest?.comtext = hsRes.inrequest?.comtext.substring(0, stringlimit)
       def oUcomment = new Ucomment()
       oUcomment.user_id = hsRes.user.id
@@ -1914,7 +1926,7 @@ class HomeController {
     if(hsRes.context?.lang){
       hsRes.owneruser = hsRes.owneruser.csiSetEnUser()
     }
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     hsRes+=oUcommentSearch.csiSelectUcommentsForHome(hsRes.inrequest.home_id,3,requestService.getOffset())
     hsRes.answerComments=hsRes.records.collect {Ucomment.findAllByRefcomment_id(it.id)}
     hsRes.home = Home.get(hsRes.inrequest.home_id)
@@ -1979,7 +1991,7 @@ class HomeController {
     }
     if (!result.error && hsRes.user && hsRes.inrequest?.com_id) {
       try {
-        def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+        def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
         if (hsRes.inrequest?.answ_comtext.size()>stringlimit) hsRes.inrequest?.answ_comtext = hsRes.inrequest?.answ_comtext.substring(0, stringlimit)
         def oUcomment = new Ucomment()
         oUcomment.user_id = hsRes.user.id
@@ -2046,7 +2058,7 @@ class HomeController {
     def i = 0
     for (ev in event) {
       if (ev.className=='active')
-        ev.title = message(code:'home.eventHome.active.title', args:[(ev.title?:''), valutaSym.decodeHTML()], default:'')
+        ev.title = message(code:'home.eventHome.active.title', args:[(ev.title?:''), valutaSym], default:'').decodeHTML()
       else if (ev.className=='notavailable')
         ev.title = message(code:'home.eventHome.notavailable.title', args:[(ev.title?:'')], default:'')
       else if (ev.className=='reserved'&&hsRes.inrequest.pc)
@@ -2144,7 +2156,7 @@ class HomeController {
       hsRes.records=Popkeywords.findAll('FROM Popkeywords WHERE name like :name ORDER BY rating DESC',[name:sName+'%'])
         
       if((hsRes.records?:[]).size()){
-        def iMax=(Tools.getIntVal(ConfigurationHolder.config.search.where_auto_complete.max,5)>=hsRes.records.size())?hsRes.records.size()-1:Tools.getIntVal(ConfigurationHolder.config.search.where_auto_complete.max,5)       
+        def iMax=(Tools.getIntVal(grailsApplication.config.search.where_auto_complete.max,5)>=hsRes.records.size())?hsRes.records.size()-1:Tools.getIntVal(grailsApplication.config.search.where_auto_complete.max,5)       
         hsRes.records=hsRes.records[0..iMax]
       }
     }	
@@ -2256,7 +2268,7 @@ class HomeController {
         }else
           oMbox=oTmpMbox
 
-        def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+        def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
         if (hsRes.inrequest?.mtext.size()>stringlimit) hsRes.inrequest?.mtext = hsRes.inrequest?.mtext.substring(0, stringlimit)
         if (Tools.getIntVal(Dynconfig.findByName('mbox.noContactMode')?.value,0)?true:false) {
           if (hsRes.inrequest.mtext.replace('(','').replace(')','').replace('-','').replaceAll("\\s","").matches('.*[0-9]{7,}.*')||hsRes.inrequest.mtext.matches('.*\\S+@\\S*.*')||hsRes.inrequest.mtext.matches('.*\\S*@\\S+.*')) {
@@ -2320,7 +2332,7 @@ class HomeController {
         }
         if(!flash.error){
           mailerService.sendMboxFirstMails(oMbox,hsRes.user.id,hsRes.context,(Tools.getIntVal(Dynconfig.findByName('mbox.noContactMode')?.value,0)?true:false),hsRes.isNeedSecondMail?:false)
-          if ((Tools.getIntVal(Dynconfig.findByName('mbox.noContactMode')?.value,0)?true:false)&&Tools.getIntVal(ConfigurationHolder.config.noticeSMS.active,1)&&User.findByClient_id(Home.get(hsRes.inrequest.id)?.client_id?:0)?.is_noticeSMS) {
+          if ((Tools.getIntVal(Dynconfig.findByName('mbox.noContactMode')?.value,0)?true:false)&&Tools.getIntVal(grailsApplication.config.noticeSMS.active,1)&&User.findByClient_id(Home.get(hsRes.inrequest.id)?.client_id?:0)?.is_noticeSMS) {
             try {
               smsService.sendNoticeSMS(User.findByClient_id(Home.get(hsRes.inrequest.id)?.client_id?:0),Home.get(hsRes.inrequest.id)?.region_id?:0)
             } catch(Exception e) {
@@ -2354,7 +2366,7 @@ class HomeController {
               for(device in lsDevices)
                 lsDevices_ids<<device.device
               if(lsDevices_ids)
-                androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //ConfigurationHolder??? 
+                androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //grailsApplication??? 
             }
             //GCM<<
           }
@@ -2387,7 +2399,7 @@ class HomeController {
     def iX=requestService.getLongDef('x',0)
     def iY=requestService.getLongDef('y',0)
     def iZoom=requestService.getIntDef('zoom',0)
-    def hsRes=bannersService.getBanners(iX,iY,iZoom,Tools.getIntVal(ConfigurationHolder.config.banner.max_radius,100),request.getHeader("User-Agent")?:'')
+    def hsRes=bannersService.getBanners(iX,iY,iZoom,Tools.getIntVal(grailsApplication.config.banner.max_radius,100),request.getHeader("User-Agent")?:'')
     return hsRes
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////  

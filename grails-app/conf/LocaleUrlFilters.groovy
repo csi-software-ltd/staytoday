@@ -1,12 +1,12 @@
 import org.springframework.web.servlet.support.RequestContextUtils as RCU
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
 class LocaleUrlFilters {
 
     def filters = {
         all(controller:'administrators|jcaptcha',invert:true) {
           before = {                                
-            if(!request.xhr && !(controllerName=='home' && actionName=='s')){              
+            if(!request.xhr/* && !(controllerName=='home' && actionName=='s')*/){              
               //log.debug('request.forwardURI='+request.forwardURI) 
               //log.debug('RCU.getLocale(request).language.toString()='+RCU.getLocale(request).language.toString())  
               if(!(request.forwardURI.contains('/en/')||(request.forwardURI.size() >= 3 && request.forwardURI.substring(request.forwardURI.size() - 3)=='/en'))){

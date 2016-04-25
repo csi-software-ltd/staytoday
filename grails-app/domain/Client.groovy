@@ -50,6 +50,8 @@ class Client {
   Integer reserve_id = 3
   Integer is_transferauto = 1
   Integer payaccount_id = 0
+  Integer partnerstatus = 0
+  Integer partnerway_id = 0
   String ogrn = ''
   String license = ''
   String scanpassport = ''
@@ -61,6 +63,9 @@ class Client {
   Date moddate = new Date()
   Date admitdate
   String ip = ''
+  String ppmail = ''
+  String ppid = ''
+  String prequisite = ''
 
   String settlprocedure_en = ''
 
@@ -102,6 +107,12 @@ class Client {
   Client csiSetAdmit(){
     is_offeradmit = 1
     admitdate = new Date()
+    this
+  }
+
+  Client updatePPdata(sMail,sId){
+    ppmail = sMail?:''
+    ppid = sId?:''
     this
   }
 
@@ -255,6 +266,29 @@ class Client {
 
   Client updateName(_name){
     name = _name?:name
+    this
+  }
+
+  Client csiSetPatnerway(iWay){
+    partnerway_id = iWay?:0
+    this
+  }
+
+  Client csiSetPatnerstatus(iStatus){
+    partnerstatus = iStatus?:0
+    this
+  }
+
+  Client clearPartnerData(){
+    partnerway_id = 0
+    ppmail = ''
+    ppid = ''
+    prequisite = ''
+    this
+  }
+
+  Client csiSetPrequisite(sRequisite){
+    prequisite = sRequisite?:''
     this
   }
 

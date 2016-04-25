@@ -2,7 +2,7 @@
 import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
 import grails.converters.*
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import java.text.SimpleDateFormat
 
 class AdministratorsController {
@@ -15,6 +15,7 @@ class AdministratorsController {
   def smsService
   def androidGcmService
   def billingService
+  def apiService
 
   def static final COOKIENAME = 'admin'
   def static final BASEINFO_PICSESSION = 'admin_baseinfo_pics'
@@ -45,7 +46,7 @@ class AdministratorsController {
         session.admin.paytask_notcomplete_count = Paytask.countByModstatus(0)
       }
     }else{
-      redirect(controller:'administrators', action:'index', params:[redir:1], base:(Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(ConfigurationHolder.config.grails.secureServerURL?:ConfigurationHolder.config.grails.serverURL):ConfigurationHolder.config.grails.serverURL))
+      redirect(controller:'administrators', action:'index', params:[redir:1], base:(Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(grailsApplication.config.grails.secureServerURL?:grailsApplication.config.grails.serverURL):grailsApplication.config.grails.serverURL))
       return false;
     }
   }
@@ -80,8 +81,8 @@ class AdministratorsController {
       return
     }
     def oAdminlog = new Adminlog()
-    def blocktime = Tools.getIntVal(ConfigurationHolder.config.admin.blocktime,1800)
-    def unsuccess_log_limit = Tools.getIntVal(ConfigurationHolder.config.admin.unsuccess_log_limit,5)
+    def blocktime = Tools.getIntVal(grailsApplication.config.admin.blocktime,1800)
+    def unsuccess_log_limit = Tools.getIntVal(grailsApplication.config.admin.unsuccess_log_limit,5)
     sPassword=Tools.hidePsw(sPassword)
     def oAdmin=Admin.find('from Admin where login=:login',
                              [login:sAdmin.toLowerCase()])
@@ -186,7 +187,7 @@ class AdministratorsController {
     if (lsLogs.size()>1){
       hsRes.lastlog = lsLogs[1]
       hsRes.unsuccess_log_amount = oAdminlog.csiCountUnsuccessLogs(hsRes.admin.id, new Date()-7)[0]
-      hsRes.unsuccess_limit = Tools.getIntVal(ConfigurationHolder.config.admin.unsuccess_log_showlimit,5)
+      hsRes.unsuccess_limit = Tools.getIntVal(grailsApplication.config.admin.unsuccess_log_showlimit,5)
     }
     hsRes.groupname = Admingroup.get(hsRes.administrator.admingroup_id).name
 	  /*if(requestService.getLongDef('ext',0))
@@ -222,9 +223,9 @@ class AdministratorsController {
     /*if(!sPass)
       flash.error=1
     else*/
-	if(sPass.size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5)){
+	if(sPass.size()<Tools.getIntVal(grailsApplication.config.user.passwordlength,5)){
       flash.error=3	
-      hsRes = [done: false,message:message(code:'admin.passw.min.length.error', default:'')+' '+Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5)]	  
+      hsRes = [done: false,message:message(code:'admin.passw.min.length.error', default:'')+' '+Tools.getIntVal(grailsApplication.config.user.passwordlength,5)]	  
     }else if (lId>1){
       if (sPass==requestService.getStr('confirm_pass')){
         def oAdmin = new Admin()
@@ -245,7 +246,7 @@ class AdministratorsController {
 
   def resizeExistingThumbs={
     checkAccess(2)
-    def pathtophoto = ConfigurationHolder.config.pathtophoto
+    def pathtophoto = grailsApplication.config.pathtophoto
     imageService.init(this,'userphotopic','userphotokeeppic',pathtophoto+File.separatorChar)
     def cl_id
     Homephoto.list().each{
@@ -254,8 +255,8 @@ class AdministratorsController {
         imageService.resizeExistingThumbs(
           it.picture,
           pathtophoto+cl_id.toString()+File.separatorChar,
-          Tools.getIntVal(ConfigurationHolder.config.photo.thumb.size,100),//thumb size
-          Tools.getIntVal(ConfigurationHolder.config.photo.thumb.height,74),//thumb height
+          Tools.getIntVal(grailsApplication.config.photo.thumb.size,100),//thumb size
+          Tools.getIntVal(grailsApplication.config.photo.thumb.height,74),//thumb height
           false,//square
           false//bSaveThumpWithSize
         )
@@ -275,7 +276,7 @@ class AdministratorsController {
     hsRes.action_id=3
     hsRes.admin = session.admin	
     hsRes.provider=Provider.findAll('FROM Provider')	
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto    
+    hsRes.imageurl = grailsApplication.config.urluserphoto    
     
     def fromModer = requestService.getIntDef('fromModer',0)
     if (fromModer){           
@@ -305,7 +306,7 @@ class AdministratorsController {
     hsRes.action_id=3
     hsRes.admin = session.admin
     def oUser=new User()	
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto          
+    hsRes.imageurl = grailsApplication.config.urluserphoto          
   
     hsRes+=requestService.getParams(['ncomment'],['order','user_id'],['name','provider','nickname'],['registr_date_from','registr_date_to','enter_date_from','enter_date_to'])
     hsRes.inrequest.modstatus = requestService.getIntDef('modstatus',-2)
@@ -440,7 +441,7 @@ class AdministratorsController {
       if(sPass2!=sPass){
         hsRes.error = true
         hsRes.message = message(code:'admin.changeUserPass.notEqual.error',args:[], default:'').toString()
-      } else if(sPass2.size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5)){
+      } else if(sPass2.size()<Tools.getIntVal(grailsApplication.config.user.passwordlength,5)){
         hsRes.error = true
         hsRes.message = message(code:'admin.changeUserPass.tooEasy.error',args:[], default:'').toString()
       } else  {
@@ -600,7 +601,9 @@ class AdministratorsController {
       hsRes.inrequest = session.lastRequest
       session.lastRequest.fromDetails = 0
     } else {
-      hsRes+=requestService.getParams(['inputdate_year', 'inputdate_month', 'inputdate_day', 'country_id', 'region_id','popdir_id','ncomment','hotdiscount','longdiscount','is_reserve'],['id','user_id'],['client_name','linkname'],['inputdate'])
+      hsRes+=requestService.getParams(['inputdate_year','inputdate_month','inputdate_day','country_id','region_id',
+                                       'popdir_id','ncomment','hotdiscount','longdiscount','is_reserve','unrealiable'],
+                                       ['id','user_id'],['client_name','linkname'],['inputdate'])
       hsRes.inrequest.modstatus = requestService.getIntDef('modstatus',-5)
       hsRes.inrequest.is_confirmed = requestService.getIntDef('is_confirmed',0)
       hsRes.inrequest.is_mainpage = requestService.getIntDef('is_mainpage',-1)
@@ -609,7 +612,7 @@ class AdministratorsController {
       session.lastRequest = [:]
       session.lastRequest = hsRes.inrequest
     }
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urlphoto
     def inputdate=''
     def inputdateNext=''
     if (hsRes.inrequest.inputdate) {
@@ -624,7 +627,8 @@ class AdministratorsController {
                 (hsRes.inrequest.is_specoffer!=null)?hsRes.inrequest.is_specoffer:-1,inputdate?:'',inputdateNext?:'',
                 hsRes.inrequest.user_id?:0,hsRes.inrequest.client_name?:'',hsRes.inrequest.is_reserve?:0,hsRes.inrequest.ncomment?:0,
                 hsRes.inrequest.hotdiscount?:0,hsRes.inrequest.longdiscount?:0,hsRes.inrequest.linkname?:'',0,
-                requestService.getLongDef('order',0),20,hsRes.inrequest.offset?:0,false,hsRes.inrequest?.popdir_id?:0,hsRes.admin.regions)
+                requestService.getLongDef('order',0),20,hsRes.inrequest.offset?:0,false,hsRes.inrequest?.popdir_id?:0,
+                hsRes.admin.regions,hsRes.inrequest.unrealiable?:0)
     hsRes.modstatus=Homemodstatus.list()
     return hsRes
   }
@@ -717,7 +721,7 @@ class AdministratorsController {
     
     def lId=requestService.getLongDef('id',0)
     hsRes.home = Home.get(lId)
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urlphoto
     if(hsRes.home){
       def bSave=requestService.getLongDef('save',0)
       hsRes.ownerUser = User.findByClient_id(hsRes.home?.client_id?:0)
@@ -1014,7 +1018,7 @@ class AdministratorsController {
   def bigimage={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)  
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urlphoto
     hsRes.image = requestService.getStr('picture')
     hsRes.home = Home.get((Homephoto.findByPicture(hsRes.image)?.home_id))
     return hsRes
@@ -1024,7 +1028,7 @@ class AdministratorsController {
     checkAccess(4)
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)  
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urlphoto
     def lId = requestService.getLongDef('id',0)
     def lHomeId = requestService.getLongDef('home_id',0)
     if(lId>0){ 	  
@@ -1033,7 +1037,7 @@ class AdministratorsController {
       if(oHomephoto&&hsRes.home){
         def tmpNorder = oHomephoto.norder
         def tmpHomephoto
-        imageService.init(this,'','',ConfigurationHolder.config.pathtophoto+hsRes.home.client_id.toString()+File.separatorChar)    
+        imageService.init(this,'','',grailsApplication.config.pathtophoto+hsRes.home.client_id.toString()+File.separatorChar)    
         def lsPictures = []      
         lsPictures<<oHomephoto.picture              	  
         oHomephoto.delete(flush:true)
@@ -1100,7 +1104,7 @@ class AdministratorsController {
     def hsRes=requestService.getContextAndDictionary(true)
     def country_id=requestService.getIntDef('country_id',1)
     hsRes.data = Popdirection.findAll('FROM Popdirection WHERE country_id=:country_id AND modstatus=1 ORDER BY rating desc, name2 asc',[country_id:country_id?:1])
-    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(ConfigurationHolder.config.popdirection.quantity,10)])
+    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(grailsApplication.config.popdirection.quantity,10)])
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
     hsRes.countries = Country.list()
@@ -1327,7 +1331,7 @@ class AdministratorsController {
     hsRes.action_id=6
     hsRes.admin = session.admin
 	
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     def oUcommentSearch = new UcommentSearch()
     hsRes+=requestService.getParams(['comdate_year', 'comdate_month', 'comdate_day'],['home_id','user_id'],[],['comdate'])
     hsRes.inrequest.comstatus = requestService.getIntDef('comstatus',-2)
@@ -1899,7 +1903,7 @@ class AdministratorsController {
 
     hsRes.advbannertypes = Advbannertypes.findAll('FROM Advbannertypes')
     
-    hsRes.url = ConfigurationHolder.config.urlphoto+'ar_banners/'?:'/'
+    hsRes.url = grailsApplication.config.urlphoto+'ar_banners/'?:'/'
     if(hsRes.url.size()==0)
       hsRes.url='/';       
 
@@ -1949,7 +1953,7 @@ println(r)
       redirect(action:"editbanners",params:hsReturnParams)
       return
     }
-    if((fileImage)&&fileImage.getSize()>0&&(ConfigurationHolder.config.pathtophoto)){
+    if((fileImage)&&fileImage.getSize()>0&&(grailsApplication.config.pathtophoto)){
         //check type
       def sContentType=fileImage.getContentType()
       if(sContentType in ["image/pjpeg","image/jpeg","image/png","image/x-png","image/gif"])
@@ -1961,7 +1965,7 @@ println(r)
         try{
           def sOrignalName=fileImage.originalFilename
            // prev file
-          def sPath=ConfigurationHolder.config.pathtophoto+'ar_banners'+File.separatorChar
+          def sPath=grailsApplication.config.pathtophoto+'ar_banners'+File.separatorChar
           if(hParams.int.id>0){
             def oBan=oBanners.csiGetBannerById(hParams.long.id)
             if((oBan!=null)&&((oBan.filename?:[]).size()>0)&&(sOrignalName!=oBan.filename))
@@ -2018,7 +2022,7 @@ println(r)
       def sPrevFile=''
     
       if((oBan!=null)&&((oBan.filename?:[]).size()>0)){
-        sPrevFile=(ConfigurationHolder.config.pathtophoto+'ar_banners'+File.separatorChar+
+        sPrevFile=(grailsApplication.config.pathtophoto+'ar_banners'+File.separatorChar+
           oBan.filename.replace('/',File.separatorChar.toString()))
         //delete prev file via service
         if(sPrevFile!=''){
@@ -2133,7 +2137,7 @@ println(r)
       hsRes.popdir.ncount = 0
     }
     if(hsRes.popdir){
-      imageService.init(this,'popdirphotopic','popdirphotokeeppic',ConfigurationHolder.config.pathtophoto+'popdir'+File.separatorChar) // 0
+      imageService.init(this,'popdirphotopic','popdirphotokeeppic',grailsApplication.config.pathtophoto+'popdir'+File.separatorChar) // 0
       def bSave=requestService.getLongDef('save',0)
       def hsPics
       if(!bSave) {
@@ -2236,8 +2240,8 @@ println(r)
       hsRes.nearDirections = Popdirection.findAllByModstatusAndIs_active(1,1)
       def oHome = new HomeSearch()
       hsRes.records = oHome.csiFindPopdirection(hsRes.popdir.id?:0,0)
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto
-      hsRes.imageurl = ConfigurationHolder.config.urlpopdiphoto
+      hsRes.urlphoto = grailsApplication.config.urlphoto
+      hsRes.imageurl = grailsApplication.config.urlpopdiphoto
     } else {
       redirect(action:'index')
       return
@@ -2249,19 +2253,19 @@ println(r)
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false)
 
-    imageService.init(this,'popdirphotopic','popdirphotokeeppic',ConfigurationHolder.config.pathtophoto+'popdir'+File.separatorChar) // 0
+    imageService.init(this,'popdirphotopic','popdirphotokeeppic',grailsApplication.config.pathtophoto+'popdir'+File.separatorChar) // 0
     def iNo=1
 
     //ÇÀÃÐÓÆÀÅÌ ÃÐÀÔÈÊÓ
     def hsData= imageService.loadPicture(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-      Tools.getIntVal(ConfigurationHolder.config.popdirphoto.image.size,710),  // size
-      Tools.getIntVal(ConfigurationHolder.config.popdirphoto.thumb.size,220), //thumb size
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.popdirphoto.image.size,710),  // size
+      Tools.getIntVal(grailsApplication.config.popdirphoto.thumb.size,220), //thumb size
       true,//SaveThumb
       false,//square
-      Tools.getIntVal(ConfigurationHolder.config.popdirphoto.image.height,425),//height
-      Tools.getIntVal(ConfigurationHolder.config.popdirphoto.thumb.height,160),//thumb height
+      Tools.getIntVal(grailsApplication.config.popdirphoto.image.height,425),//height
+      Tools.getIntVal(grailsApplication.config.popdirphoto.thumb.height,160),//thumb height
       false,
       false
     ) // 3
@@ -2279,7 +2283,7 @@ println(r)
     def hsRes=requestService.getContextAndDictionary(false)  
 
     //ÎÁßÇÀÒÅËÜÍÀß ÈÍÈÖÈÀËÈÇÀÖÈß TODO: path into cfg
-    imageService.init(this,'popdirphotopic','popdirphotokeeppic',ConfigurationHolder.config.pathtophoto+'popdir'+File.separatorChar)
+    imageService.init(this,'popdirphotopic','popdirphotokeeppic',grailsApplication.config.pathtophoto+'popdir'+File.separatorChar)
     
     def sName=requestService.getStr("name")
 
@@ -2538,9 +2542,9 @@ println(r)
     if (sLogin) {
       def lsAdmin = Admin.findAllWhere(login:sLogin)
       if (!lsAdmin){
-        if(sPass.size()<Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5)){
+        if(sPass.size()<Tools.getIntVal(grailsApplication.config.user.passwordlength,5)){
          	
-          hsRes = [done: false,message:message(code:'admin.passw.min.length.error', default:'')+' '+Tools.getIntVal(ConfigurationHolder.config.user.passwordlength,5)]	  
+          hsRes = [done: false,message:message(code:'admin.passw.min.length.error', default:'')+' '+Tools.getIntVal(grailsApplication.config.user.passwordlength,5)]	  
         }else if (sPass==requestService.getStr('confirm_pass')){
           def oAdmin = new Admin(login:sLogin,password:Tools.hidePsw(sPass),
                                  email:'',name:'',admingroup_id:0,accesslevel:0)
@@ -2636,7 +2640,7 @@ println(r)
     hsRes += [messages : oGuestbook.csiGetMessages(hParams,hsRes.max,requestService.getOffset()),
               regdictionary : session.admin.regdictionary]
     hsRes += requestService.getContextAndDictionary(true)
-    hsRes['imageurl']=ConfigurationHolder.config.urlimg	
+    hsRes['imageurl']=grailsApplication.config.urlimg	
     return hsRes
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2830,8 +2834,8 @@ println(r)
 	} else if (hsRes.prop.modstatus!=-2) {
 	  hsRes+=zayavkaService.csiFindClient(hsRes.prop,[hsRes.prop.baseclient_id])
 	}
-	hsRes.homeimageurl = ConfigurationHolder.config.urlphoto
-  hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+	hsRes.homeimageurl = grailsApplication.config.urlphoto
+  hsRes.imageurl = grailsApplication.config.urluserphoto
 	def oValutarate = new Valutarate()
 	hsRes.valutaRates = oValutarate.csiGetRate(hsRes.prop.valuta_id)
 	hsRes.valutaSym = Valuta.get(hsRes.prop.valuta_id).symbol
@@ -2956,7 +2960,7 @@ println(r)
 			oTObj.save(flush:true)
 			hsRes.prop.modstatus = 1
 			hsRes.prop.save(flush:true)
-      if (oUser?.is_emailzayvka && counter<Tools.getIntVal(ConfigurationHolder.config.zayvka_mail.max,10)) {
+      if (oUser?.is_emailzayvka && counter<Tools.getIntVal(grailsApplication.config.zayvka_mail.max,10)) {
         (new Zayavkabyemail(oUser.email,oUser.nickname,hsRes.prop.city,hsRes.prop.ztext,hsRes.prop.date_start,hsRes.prop.date_end)).save(flush:true)
         ++counter
       }
@@ -3010,7 +3014,7 @@ println(r)
             oTObj.save(flush:true)
             prop.modstatus = 1
             prop.save(flush:true)
-            if (oUser?.is_emailzayvka && counter<Tools.getIntVal(ConfigurationHolder.config.zayvka_mail.max,10)) {
+            if (oUser?.is_emailzayvka && counter<Tools.getIntVal(grailsApplication.config.zayvka_mail.max,10)) {
               (new Zayavkabyemail(oUser.email,oUser.nickname,prop.city,prop.ztext,prop.date_start,prop.date_end)).save(flush:true)
               ++counter
             }
@@ -3469,8 +3473,8 @@ println(r)
     hsRes.home = Home.get(hsRes.mbox.home_id)
     hsRes.ownerUser = User.findByClient_id(hsRes.home.client_id)
     hsRes.client = User.get(hsRes.mbox.user_id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.homeimageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.homeimageurl = grailsApplication.config.urlphoto
 
     return hsRes
   }
@@ -3544,13 +3548,14 @@ println(r)
           def oUser = User.get(oMbox.user_id)
           if (oUser?.tel) smsService.sendOfferSMS(oUser)
           mailerService.sendBronInvitationMail(oMboxrec,oMbox,billingService.getBronPrice(oMbox))
+          if (oMbox.outer_id) apiService.createResponse(oMbox,1,1)
         } else if(oMbox.modstatus in [1,2,6]){
           oMbox.modstatus = 1
         }
         if (oMbox.isDirty('is_approved')) {
           oMbox.moddate = new Date()
           mailerService.sendMboxFirstMails(oMbox,oMbox.user_id,hsRes.context,true,false)
-          if (Tools.getIntVal(ConfigurationHolder.config.noticeSMS.active,1)&&User.findByClient_id(oMbox.homeowner_cl_id)?.is_noticeSMS) {
+          if (Tools.getIntVal(grailsApplication.config.noticeSMS.active,1)&&User.findByClient_id(oMbox.homeowner_cl_id)?.is_noticeSMS) {
             try {
               smsService.sendNoticeSMS(User.findByClient_id(oMbox.homeowner_cl_id),Home.get(oMbox.home_id)?.region_id?:0)
             } catch(Exception e) {
@@ -3580,7 +3585,7 @@ println(r)
             for(device in lsDevices)
               lsDevices_ids << device.device
             if(lsDevices_ids)
-              androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //ConfigurationHolder???
+              androidGcmService.sendMessage(sendGCM,lsDevices_ids,'message', grailsApplication.config.android.gcm.api.key ?: '')  //grailsApplication???
           }
           //GCM<<
         } else {
@@ -3721,7 +3726,7 @@ println(r)
       session.lastRequest = hsRes.inrequest
     }
 
-    hsRes.imageurl = ConfigurationHolder.config.urlarticlesphoto
+    hsRes.imageurl = grailsApplication.config.urlarticlesphoto
     def oArticle = new Articles()
     hsRes+=oArticle.getArticleList(hsRes.inrequest.id?:0,hsRes.inrequest.modstatus?:0,hsRes.inrequest.title?:'',hsRes.inrequest.inputdate?:'',20,requestService.getOffset())
 
@@ -3738,7 +3743,7 @@ println(r)
     hsRes.id=requestService.getIntDef('id',0)
     hsRes.save=requestService.getIntDef('save',0)
 
-    imageService.init(this,'articlephotopic','articlephotokeeppic',ConfigurationHolder.config.pathtophoto+'articles'+File.separatorChar) // 0
+    imageService.init(this,'articlephotopic','articlephotokeeppic',grailsApplication.config.pathtophoto+'articles'+File.separatorChar) // 0
     if (!hsRes.save)
       imageService.finalizeFileSession(['file1'])
     imageService.startFileSession() // 1
@@ -3755,7 +3760,7 @@ println(r)
     if(hsPics!=null){
       hsRes.inrequest.picture=hsPics.photo
     }
-    hsRes.imageurl = ConfigurationHolder.config.urlarticlesphoto
+    hsRes.imageurl = grailsApplication.config.urlarticlesphoto
 
     return hsRes
   }
@@ -3764,19 +3769,19 @@ println(r)
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false)
 
-    imageService.init(this,'articlephotopic','articlephotokeeppic',ConfigurationHolder.config.pathtophoto+'articles'+File.separatorChar) // 0
+    imageService.init(this,'articlephotopic','articlephotokeeppic',grailsApplication.config.pathtophoto+'articles'+File.separatorChar) // 0
     def iNo=1
 
     //ÇÀÃÐÓÆÀÅÌ ÃÐÀÔÈÊÓ
     def hsData= imageService.loadPicture(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-      Tools.getIntVal(ConfigurationHolder.config.articlephoto.image.size,710),  // size
-      Tools.getIntVal(ConfigurationHolder.config.articlephoto.thumb.size,220), //thumb size
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.articlephoto.image.size,710),  // size
+      Tools.getIntVal(grailsApplication.config.articlephoto.thumb.size,220), //thumb size
       true,//SaveThumb
       false,//square
-      Tools.getIntVal(ConfigurationHolder.config.articlephoto.image.height,425),//height
-      Tools.getIntVal(ConfigurationHolder.config.articlephoto.thumb.height,160),//thumb height
+      Tools.getIntVal(grailsApplication.config.articlephoto.image.height,425),//height
+      Tools.getIntVal(grailsApplication.config.articlephoto.thumb.height,160),//thumb height
       false,
       false
     ) // 3
@@ -3794,7 +3799,7 @@ println(r)
     def hsRes=requestService.getContextAndDictionary(false)  
 
     //ÎÁßÇÀÒÅËÜÍÀß ÈÍÈÖÈÀËÈÇÀÖÈß TODO: path into cfg
-    imageService.init(this,'articlephotopic','articlephotokeeppic',ConfigurationHolder.config.pathtophoto+'articles'+File.separatorChar)
+    imageService.init(this,'articlephotopic','articlephotokeeppic',grailsApplication.config.pathtophoto+'articles'+File.separatorChar)
     
     def sName=requestService.getStr("name")
     imageService.deletePicture(sName)//4
@@ -3833,7 +3838,7 @@ println(r)
         hsRes.article.ceo_keywords = hsRes.inrequest.ceo_keywords?:''
         hsRes.article.ceo_description = hsRes.inrequest.ceo_description?:''
 
-        imageService.init(this,'articlephotopic','articlephotokeeppic',ConfigurationHolder.config.pathtophoto+'articles'+File.separatorChar) // 0
+        imageService.init(this,'articlephotopic','articlephotokeeppic',grailsApplication.config.pathtophoto+'articles'+File.separatorChar) // 0
         def hsPics=imageService.getSessionPics('file1')
         if((hsRes.article.picture?:'')!=''&&!hsPics)
           imageService.putIntoSessionFromDb(hsRes.article.picture,'file1') // 2
@@ -3907,14 +3912,16 @@ println(r)
       hsRes.inrequest = session.lastRequest
       session.lastRequest.fromDetails = 0
     } else {
-      hsRes+=requestService.getParams(['country_id','type_id'],['id'],['name','nickname'])
+      hsRes+=requestService.getParams(['country_id','type_id','partnerstatus'],['id'],['name','nickname'])
       hsRes.inrequest.resstatus = requestService.getIntDef('resstatus',0)
       session.lastRequest = [:]
       session.lastRequest = hsRes.inrequest
     }
 
-    def oClient = new ClientSearch()
-    hsRes+=oClient.csiSelectClients(hsRes.inrequest?.id?:0,hsRes.inrequest?.country_id?:0,hsRes.inrequest?.resstatus,hsRes.inrequest?.nickname?:'',hsRes.inrequest?.name?:'',hsRes.inrequest?.type_id?:0,20,requestService.getOffset())
+    hsRes+=new ClientSearch().csiSelectClients(hsRes.inrequest?.id?:0,hsRes.inrequest?.country_id?:0,
+                                               hsRes.inrequest?.resstatus,hsRes.inrequest?.nickname?:'',
+                                               hsRes.inrequest?.name?:'',hsRes.inrequest?.type_id?:0,
+                                               hsRes.inrequest?.partnerstatus?:0,20,requestService.getOffset())
 
     return hsRes
   }
@@ -3939,8 +3946,8 @@ println(r)
     hsRes.country = Country.findAllByIs_reserve(1)
     hsRes.reserve = Reserve.findAllByModstatus(1)
     hsRes.paycountry = Paycountry.findAllByCountry_id(hsRes.client?.country_id?:0)
-    hsRes.urlscanpassport = ConfigurationHolder.config.urlscanpassport
-    hsRes.urlscandogovor = ConfigurationHolder.config.urlscandogovor
+    hsRes.urlscanpassport = grailsApplication.config.urlscanpassport
+    hsRes.urlscandogovor = grailsApplication.config.urlscandogovor
 
     return hsRes
   }
@@ -4004,11 +4011,11 @@ println(r)
     hsRes.id=requestService.getIntDef('id',0)
     hsRes.client = Client.get(hsRes.id)
 
-    imageService.init(this,'scanpassphotopic','scanpassphotokeeppic',ConfigurationHolder.config.pathtophoto+'scanpass'+File.separatorChar) // 0
+    imageService.init(this,'scanpassphotopic','scanpassphotokeeppic',grailsApplication.config.pathtophoto+'scanpass'+File.separatorChar) // 0
     //ÇÀÃÐÓÆÀÅÌ ÃÐÀÔÈÊÓ
     def hsData= imageService.rawUpload(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
     ) // 3
 
     hsData['num']=1 //<- ÍÅÎÁÕÎÄÈÌÎ ÄËß ÊÎÐÐÅÊÒÍÎÉ ÐÀÁÎÒÛ js â savepictureresult
@@ -4018,7 +4025,7 @@ println(r)
         hsRes.client.savescanpassport(hsData)
       } catch(Exception e) {
         hsData.error = 5
-        log.debug('Administrators:savescanpassport. Error on save client:'+hsRes.inrequest.id+'\n'+e.toString())
+        log.debug('Administrators:savescanpassport. Error on save client:'+hsRes.client.id+'\n'+e.toString())
       }
     } else if (!hsData.error) {
       hsData.error = 6
@@ -4038,11 +4045,11 @@ println(r)
     hsRes.id=requestService.getIntDef('id',0)
     hsRes.client = Client.get(hsRes.id)
 
-    imageService.init(this,'scandogphotopic','scandogphotokeeppic',ConfigurationHolder.config.pathtophoto+'scandog'+File.separatorChar) // 0
+    imageService.init(this,'scandogphotopic','scandogphotokeeppic',grailsApplication.config.pathtophoto+'scandog'+File.separatorChar) // 0
     //ÇÀÃÐÓÆÀÅÌ ÃÐÀÔÈÊÓ
     def hsData= imageService.rawUpload(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
     ) // 3
 
     hsData['num']=2 //<- ÍÅÎÁÕÎÄÈÌÎ ÄËß ÊÎÐÐÅÊÒÍÎÉ ÐÀÁÎÒÛ js â savepictureresult
@@ -4052,7 +4059,7 @@ println(r)
         hsRes.client.savescandogovor(hsData)
       } catch(Exception e) {
         hsData.error = 5
-        log.debug('Administrators:savescandogovor. Error on save client:'+hsRes.inrequest.id+'\n'+e.toString())
+        log.debug('Administrators:savescandogovor. Error on save client:'+hsRes.client.id+'\n'+e.toString())
       }
     } else if (!hsData.error) {
       hsData.error = 6
@@ -4076,21 +4083,40 @@ println(r)
       //ÎÁßÇÀÒÅËÜÍÀß ÈÍÈÖÈÀËÈÇÀÖÈß TODO: path into cfg
       try {
         if(hsRes.type==1) {
-          imageService.init(this,'scanpassphotopic','scanpassphotokeeppic',ConfigurationHolder.config.pathtophoto+'scanpass'+File.separatorChar)
+          imageService.init(this,'scanpassphotopic','scanpassphotokeeppic',grailsApplication.config.pathtophoto+'scanpass'+File.separatorChar)
           imageService.rawDeletePictureFiles(hsRes.client.scanpassport)//4
           hsRes.client.savescanpassport([:])
         } else if(hsRes.type==2) {
-          imageService.init(this,'scandogphotopic','scandogphotokeeppic',ConfigurationHolder.config.pathtophoto+'scandog'+File.separatorChar)
+          imageService.init(this,'scandogphotopic','scandogphotokeeppic',grailsApplication.config.pathtophoto+'scandog'+File.separatorChar)
           imageService.rawDeletePictureFiles(hsRes.client.scandogovor)//4
           hsRes.client.savescandogovor([:])
         }
       } catch(Exception e) {
-        log.debug('Administrators:deletescan. Error on save client:'+hsRes.inrequest.id+'\n'+e.toString())
+        log.debug('Administrators:deletescan. Error on save client:'+hsRes.client.id+'\n'+e.toString())
       }
     }
     render(contentType:"application/json"){[error:false]}
   }
 
+  def setpartnerstatus={
+    checkAccess(18)
+    requestService.init(this)
+    def hsRes=requestService.getContextAndDictionary(true)
+    hsRes.action_id=18
+    hsRes.admin = session.admin
+
+    hsRes.status = requestService.getIntDef('status',0)
+    hsRes.client = Client.get(requestService.getIntDef('id',0))
+    if (hsRes.client&&hsRes.client.partnerway_id!=1) {
+      try {
+        hsRes.client.csiSetPatnerstatus(hsRes.status).save(failOnError:true)
+        if (hsRes.status==2) mailerService.sendConfirmPartnerMail(User.findByClient_id(hsRes.client.id))
+      } catch(Exception e) {
+        log.debug('Administrators:setpartnerstatus. Error on save client:'+hsRes.client.id+'\n'+e.toString())
+      }
+    }
+    render(contentType:"application/json"){[error:false]}
+  }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////Clients<<</////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4138,7 +4164,7 @@ println(r)
       session.lastRequest = [:]
       session.lastRequest = hsRes.inrequest
     }
-    //hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    //hsRes.imageurl = grailsApplication.config.urlphoto
 
     hsRes+=oHomeSearchAdmin.csiSelectHomes(0,hsRes.inrequest.country_id?:0,
                 hsRes.inrequest.region_id?:0,(hsRes.inrequest.modstatus!=null)?hsRes.inrequest.modstatus:-5,
@@ -4251,7 +4277,7 @@ println(r)
     def hsRes=[:]  
     hsRes.action_id=26
     hsRes.admin = session.admin    
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urlphoto
     hsRes+=requestService.getParams(['id'])    
     
     if(hsRes.inrequest.id){
@@ -4298,7 +4324,7 @@ println(r)
       hsRes.anons.image = hsRes.inrequest?.image?:''
       hsRes.anons.is_index = hsRes.inrequest?.is_index?:0 
  /*
-      imageService.init(this,'anonsphotopic','anonsphotokeeppic',ConfigurationHolder.config.pathtophoto+File.separatorChar) // 0
+      imageService.init(this,'anonsphotopic','anonsphotokeeppic',grailsApplication.config.pathtophoto+File.separatorChar) // 0
       def hsPics=imageService.getSessionPics('file1')
       if((hsRes.anons.image?:'')!=''&&!hsPics)
         imageService.putIntoSessionFromDb(hsRes.anons.image,'file1') // 2
@@ -4320,7 +4346,7 @@ println(r)
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false)  
     
-    imageService.init(this,'anonsphotopic','anonsphotokeeppic',ConfigurationHolder.config.pathtophoto+File.separatorChar)
+    imageService.init(this,'anonsphotopic','anonsphotokeeppic',grailsApplication.config.pathtophoto+File.separatorChar)
     
     def sName=requestService.getStr("name")
     imageService.deletePicture(sName)//4
@@ -4330,19 +4356,19 @@ println(r)
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false)
 
-    imageService.init(this,'anonsphotopic','anonsphotokeeppic',ConfigurationHolder.config.pathtophoto+File.separatorChar) // 0
+    imageService.init(this,'anonsphotopic','anonsphotokeeppic',grailsApplication.config.pathtophoto+File.separatorChar) // 0
     def iNo=1
 
     //ÇÀÃÐÓÆÀÅÌ ÃÐÀÔÈÊÓ
     def hsData= imageService.loadPicture(
       "file1",
-      Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-      Tools.getIntVal(ConfigurationHolder.config.anonsphoto.image.size,68),  // size
-      Tools.getIntVal(ConfigurationHolder.config.anonsphoto.thumb.size,68), //thumb size
+      Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+      Tools.getIntVal(grailsApplication.config.anonsphoto.image.size,68),  // size
+      Tools.getIntVal(grailsApplication.config.anonsphoto.thumb.size,68), //thumb size
       false,//SaveThumb
       false,//square
-      Tools.getIntVal(ConfigurationHolder.config.anonsphoto.image.height,68),//height
-      Tools.getIntVal(ConfigurationHolder.config.anonsphoto.thumb.height,68),//thumb height
+      Tools.getIntVal(grailsApplication.config.anonsphoto.image.height,68),//height
+      Tools.getIntVal(grailsApplication.config.anonsphoto.thumb.height,68),//thumb height
       false,
       false
     ) // 3

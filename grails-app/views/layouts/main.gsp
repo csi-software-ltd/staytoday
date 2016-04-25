@@ -159,7 +159,7 @@
       </g:elseif><g:if test="${controllerName=='home' && actionName=='detail'}">
         jQuery('#flag_container.header-dropdown').css('top','41px');
       </g:if>       
-      }*/  
+      }*/
     });
   </script>
   </head>
@@ -404,6 +404,7 @@
                     </ul>
                   </td>
                   <td class="analytics">
+                  <g:if test="${controllerName != 'personal'}">
                     <!-- <b class="tel">8 (800) 555-1768</b> -->
                     <div class="counters_code" align="center"><!--noindex-->
                       <script id="top100Counter" type="text/javascript" src="https://counter.rambler.ru/top100.jcn?2812368"></script><!--/noindex-->
@@ -424,6 +425,7 @@
                       <br /><a href="http://naydidom.com/arenda-posutochno-kvartir-russia.html" target="_blank"><img style="margin-top:2px" src="http://naydidom.com/static/images/nd-icon.jpg" alt="Посуточная аренда квартир на Naydidom.com" /></a>
                     </g:if>
                     </div>
+                  </g:if>
                   </td>
                   <td align="right"><!--noindex-->
                     <div class="developers">
@@ -456,6 +458,7 @@
       VK.init({ apiId: ${vk_api_key} });
       FB.init({ appId: ${fb_api_key}, status: true, cookie: true, xfbml: true, oauth: true });      
       </g:if>      
+    <g:if test="${controllerName != 'personal'}">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-33193007-1']);
       _gaq.push(['_setDomainName', 'staytoday.ru']);
@@ -464,7 +467,7 @@
         var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();    
+      })();
       (function (w, c) {
         (w[c] = w[c] || []).push(function() {
           try {
@@ -488,6 +491,7 @@
         s.src = '//code.jivosite.com/script/widget/' + widget_id; 
         var ss = document.getElementsByTagName('script')[0]; ss.parentNode.insertBefore(s, ss); 
       })();      
+    </g:if>
     </g:javascript>
     <r:layoutResources/><!--/noindex-->    
   </body>

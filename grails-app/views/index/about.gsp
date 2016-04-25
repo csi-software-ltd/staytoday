@@ -73,12 +73,18 @@
             </tr>
             <tr>              
               <td colspan="3" class="bg_shadow">              
-                <div class="breadcrumbs" xmlns:v="http://rdf.data-vocabulary.org/#">
-                  <span typeof="v:Breadcrumb">
-                    <a onclick="transit(${context.is_dev?1:0},'','','','','${context?.lang}')" rel="nofollow" property="v:title">${message(code:'label.main')}</a> &#8594;
-                  </span>
-                  ${infotext['header'+context?.lang]?:''}
-                </div>
+                <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <a itemprop="item" onclick="transit(${context.is_dev?1:0},'','','','','${context?.lang}')" rel="nofollow">
+                      <span itemprop="name">${message(code:'label.main')}</span>
+                    </a><meta itemprop="position" content="1" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${infotext['header'+context?.lang]?:''}</span>
+                    </span><meta itemprop="position" content="2" />
+                  </li>
+                </ul>
               </td>
             </tr>
             <tr>

@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
 class Paging  {
   def static computeNavigation(iFrom,iNumberOfRecords,iNumberOfRecordsPerPage,iNumberOfPagePerList){

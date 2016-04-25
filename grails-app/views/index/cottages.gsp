@@ -133,20 +133,30 @@
             </tr>
             <tr>              
               <td colspan="3" class="bg_shadow">
-                <div class="breadcrumbs" xmlns:v="http://rdf.data-vocabulary.org/#">
-                  <span typeof="v:Breadcrumb">
-                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" rel="v:url" property="v:title">${message(code:'label.main')}</a> &#8594;
-                  </span><span typeof="v:Breadcrumb">
-                    <g:if test="${breadcrumbs.country.is_index}"><a href="<g:createLink controller='index' action='popdirectionAll' params='[id:breadcrumbs.country.urlname]' base='${context?.mainserverURL_lang}'/>" rel="v:url" property="v:title"></g:if>
-                    <g:else><span class="link" onclick="transit(${context.is_dev?1:0},['${breadcrumbs.country.urlname}'],'','','','${context?.lang}')" property="v:title"></g:else>
-                      ${breadcrumbs.country['name'+context?.lang]}<g:if test="${breadcrumbs.country.is_index}"></a></g:if><g:else></span></g:else> &#8594;
-                  </span><span typeof="v:Breadcrumb">
-                    <g:if test="${popdirection?.is_index}"><a href="<g:createLink controller='index' action='direction' id='${popdirection.linkname}' params='${[country:breadcrumbs.country.urlname]}' base='${context?.mainserverURL_lang}'/>" rel="v:url" property="v:title"></g:if>
-                    <g:else><span class="link" onclick="transit(${context.is_dev?1:0},['${popdirection?.linkname}','${breadcrumbs.country.urlname}'],'','','','${context?.lang}')" property="v:title"></g:else>
-                  ${popdirection['name2'+context?.lang]}<g:if test="${popdirection?.is_index}"></a></g:if><g:else></span></g:else> &#8594;
-                  </span>
-                  ${message(code:'direction.cottages')}
-                </div>
+                <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" itemprop="item">
+                      <span itemprop="name">${message(code:'label.main')}</span>
+                    </a><meta itemprop="position" content="1" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:if test="${breadcrumbs.country.is_index}"><a href="<g:createLink controller='index' action='popdirectionAll' params='[id:breadcrumbs.country.urlname]' base='${context?.mainserverURL_lang}'/>" itemprop="item"></g:if>
+                    <g:else><span class="link" onclick="transit(${context.is_dev?1:0},['${breadcrumbs.country.urlname}'],'','','','${context?.lang}')" itemprop="item"></g:else>
+                      <span itemprop="name">${breadcrumbs.country['name'+context?.lang]}</span>
+                    <g:if test="${breadcrumbs.country.is_index}"></a></g:if><g:else></span></g:else><meta itemprop="position" content="2" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <g:if test="${popdirection?.is_index}"><a href="<g:createLink controller='index' action='direction' id='${popdirection.linkname}' params='${[country:breadcrumbs.country.urlname]}' base='${context?.mainserverURL_lang}'/>" itemprop="item"></g:if>
+                    <g:else><span class="link" onclick="transit(${context.is_dev?1:0},['${popdirection?.linkname}','${breadcrumbs.country.urlname}'],'','','','${context?.lang}')" itemprop="item"></g:else>
+                      <span itemprop="item">${popdirection['name2'+context?.lang]}</span>
+                    <g:if test="${popdirection?.is_index}"></a></g:if><g:else></span></g:else><meta itemprop="position" content="3" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name">${message(code:'direction.cottages')}</span>
+                    </span><meta itemprop="position" content="4" />
+                  </li>
+                </ul>
               </td>
             </tr>
             <tr>

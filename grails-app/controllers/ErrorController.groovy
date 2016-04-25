@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 
 class ErrorController {
@@ -12,14 +12,14 @@ class ErrorController {
   def page_404 = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true)
-    if(Tools.getIntVal(ConfigurationHolder.config.loginDenied.isLoginDenied,0)) {
+    if(Tools.getIntVal(grailsApplication.config.loginDenied.isLoginDenied,0)) {
       hsRes.isLoginDenied=true
-      hsRes.loginDeniedText=ConfigurationHolder.config.loginDenied.text?:'Сервис временно недоступен'
+      hsRes.loginDeniedText=grailsApplication.config.loginDenied.text?:'Сервис временно недоступен'
     }
     hsRes.hometype=Hometype.list([sort:'regorder',order:'asc'])
     hsRes.homeperson=Homeperson.list()
     hsRes.popdirection=Popdirection.findAllByModstatusAndIs_main(1,1,[sort:'rating',order:'desc'])    
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
@@ -28,7 +28,7 @@ class ErrorController {
     def oHomeSearch=new HomeSearch()
     hsRes.specoffer_records=oHomeSearch.csiFindSpecoffer()
     //hsRes.specoffer_records.each{requestService.setStatistic('specoffer',0,it.id)}
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto        
+    hsRes.urlphoto = grailsApplication.config.urlphoto        
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -49,7 +49,7 @@ class ErrorController {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true)
 
-    if (!Tools.getIntVal(ConfigurationHolder.config.isdev,0)&&request?.exception?.stackTraceLines?.find{it.toString().trim().matches('.*OutOfMemoryError.*')}){
+    if (!Tools.getIntVal(grailsApplication.config.isdev,0)&&request?.exception?.stackTraceLines?.find{it.toString().trim().matches('.*OutOfMemoryError.*')}){
       def oNotice = Admin_notice.findByIs_read(1)
       if(oNotice?.type==1) {
         oNotice.is_read = 0
@@ -66,7 +66,7 @@ class ErrorController {
     hsRes.hometype=Hometype.list([sort:'regorder',order:'asc'])
     hsRes.homeperson=Homeperson.list()
     hsRes.popdirection=Popdirection.findAllByModstatusAndIs_main(1,1,[sort:'rating',order:'desc'])    
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
@@ -75,7 +75,7 @@ class ErrorController {
     def oHomeSearch=new HomeSearch()
     hsRes.specoffer_records=oHomeSearch.csiFindSpecoffer()
     hsRes.specoffer_records.each{requestService.setStatistic('specoffer',0,it.id)}
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto        
+    hsRes.urlphoto = grailsApplication.config.urlphoto        
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -99,7 +99,7 @@ class ErrorController {
     hsRes.hometype=Hometype.list([sort:'regorder',order:'asc'])
     hsRes.homeperson=Homeperson.list()
     hsRes.popdirection=Popdirection.findAllByModstatusAndIs_main(1,1,[sort:'rating',order:'desc'])    
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
@@ -108,7 +108,7 @@ class ErrorController {
     def oHomeSearch=new HomeSearch()
     hsRes.specoffer_records=oHomeSearch.csiFindSpecoffer()
     hsRes.specoffer_records.each{requestService.setStatistic('specoffer',0,it.id)}
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -137,7 +137,7 @@ class ErrorController {
     def sMoveTo=request.getHeader('referer')
     def iRemember=requestService.getIntDef('remember',0)
     if(!flash.user_id){//>>not from confirm
-      if((hsInrequest?.user_index?:0) && session.user_enter_fail>Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)){
+      if((hsInrequest?.user_index?:0) && session.user_enter_fail>Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)){
         try{
           if (! jcaptchaService.validateResponse("image", session.id, params.captcha)){
             flash.error=99 //error in captha
@@ -287,7 +287,7 @@ class ErrorController {
     def hsRes=requestService.getContextAndDictionary(true)
     def hsInrequest = requestService.getParams(['is_ajax','service'],['id','vk_id','home_id'],['vk_pic','vk_photo','vk_name','vk_hash','control','act','what','where']).inrequest      
       
-    def sStr=ConfigurationHolder.config.vk.APIKey+hsInrequest.vk_id.toString()+ConfigurationHolder.config.vk.SecretKey
+    def sStr=grailsApplication.config.vk.APIKey+hsInrequest.vk_id.toString()+grailsApplication.config.vk.SecretKey
 
     def bNewUser = true
     if (User.findWhere(openid:'vk_'+hsInrequest.vk_id.toString())?.ref_id?:0)
@@ -383,15 +383,15 @@ class ErrorController {
       return
     }
     hsRes.inrequest = requestService.getParams(['is_ajax','service'],['id'],['control','act','what','user']).inrequest
-    hsRes.inrequest.user_max_enter_fail=Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)
+    hsRes.inrequest.user_max_enter_fail=Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)
     if(flash.error==51 || flash.error==1 || flash.error==3)
       if(session.user_enter_fail)
         session.user_enter_fail++
       else
         session.user_enter_fail=1
 
-    hsRes.twitter_api_key=ConfigurationHolder.config.twitter.APIKey
-    hsRes.vk_api_key=ConfigurationHolder.config.vk.APIKey   
+    hsRes.twitter_api_key=grailsApplication.config.twitter.APIKey
+    hsRes.vk_api_key=grailsApplication.config.vk.APIKey   
 
     if (hsRes.inrequest.is_ajax==1){//AJAX
       if(hsRes.user!=null){

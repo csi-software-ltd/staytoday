@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import org.springframework.context.i18n.LocaleContextHolder as LCH
 import org.apache.poi.ss.usermodel.*
 import org.cyberneko.html.parsers.*
@@ -6,14 +6,14 @@ class BillingService {
 	def messageSource
   def mailerService
   def smsService
-
+  def grailsApplication
   //static datasource = 'admin'
 	void createTripFromMbox(oMbox,oMboxrec1,oContext,lUId=0l,iClose=0,lPayorderId=0,iPaymentStatus=0){
 
     setBookAndPaidStatus(oMbox,oMboxrec1,lPayorderId?true:false)
 
     if (!lPayorderId) {
-      mailerService.mbox_bron_client(lUId?:0.toLong(),oMbox.home_id,oMbox.id,oMboxrec.id,oContext)
+      mailerService.mbox_bron_client(lUId?:0.toLong(),oMbox.home_id,oMbox.id,oMboxrec1.id,oContext)
     } else {
       mailerService.mbox_bron_client_with_payment(lUId,oMbox) //клиенту
       mailerService.mbox_bron_owner_with_payment(oMbox.homeowner_cl_id,oMbox) //владельцу
@@ -85,13 +85,36 @@ class BillingService {
     return result
 	}
 
+  def createPartnerConfirmationOrder(oRequest){
+    if (!oRequest?.client&&!oRequest.user) {
+      throw new Exception ('Not all data set')
+    }
+    def result = null
+    Payorder.withTransaction { status ->
+      try {
+        synchronized(this) {
+          if((result = Payorder.createOrder(oRequest,Reserve.get(3),1))){
+            if(!Account.getInstanceForOwner(oRequest.client.id))
+              throw new Exception ('save error')
+            status.flush()
+          }
+        }
+      } catch(Exception e) {
+        log.debug("BillingService:createPartnerConfirmationOrder:\n"+e.toString())
+        status.setRollbackOnly()
+        throw e
+      }
+    }
+    return result
+  }
+
 	Long calculateOrderDayPrice(oMbox,iType){
 		def iDays = oMbox.date_end - oMbox.date_start
 		if (Home.get(oMbox.home_id)?.is_pricebyday) {
 			iDays++
 		}
-		def result = Math.round((oMbox.price_rub/(iDays?:1)) + oMbox.price_rub * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))
-    def comission = computeOurComissionSumma(oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100),iType)
+		def result = Math.round((oMbox.price_rub/(iDays?:1)) + oMbox.price_rub * (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100))
+    def comission = computeOurComissionSumma(oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100),iType)
 		return (result>comission?result:comission)
 	}
 
@@ -105,10 +128,10 @@ class BillingService {
         result = calculateOrderDayPrice(oMbox,1)
         break
       case 3:
-        result = Math.round((oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))*(Tools.getIntVal(ConfigurationHolder.config.clientPric111e.modifier,10) / 100))
+        result = Math.round((oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100))*(Tools.getIntVal(grailsApplication.config.clientPric111e.modifier,10) / 100))
         break
       default:
-        result = Math.round(oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))
+        result = Math.round(oMbox.price_rub + oMbox.price_rub * (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100))
         break
     }
     return result
@@ -177,6 +200,9 @@ class BillingService {
           case 23:
             transactionType23Handler(oPaytrans)
             break
+          case 24:
+            transactionType24Handler(oPaytrans)
+            break
           default:
             throw new Exception ('Where is no handler for transaction type '+oPaytrans.paytype_id)
             break
@@ -208,7 +234,7 @@ class BillingService {
     }
     cancelMboxBron(Trip.findByPayorder_id(_paytrans.payorder_id),1,_paytrans.comment,collectContext())
     //admin notice! >>
-    def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+    def oAdmin = Admin.get(Tools.getIntVal(grailsApplication.config.notifyAdmin.id,2))
     if (oAdmin?.email)
       (new Zayavkabyemail(oAdmin.email,oAdmin.name,_paytrans.payorder_id,'владельцем',new Date(),new Date(),'#cancelBronAdminNotice')).save()
   }
@@ -254,7 +280,7 @@ class BillingService {
     }
     cancelMboxBron(Trip.findByPayorder_id(_paytrans.payorder_id),0,_paytrans.comment,collectContext())
     //admin notice! >>
-    def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+    def oAdmin = Admin.get(Tools.getIntVal(grailsApplication.config.notifyAdmin.id,2))
     if (oAdmin?.email)
       (new Zayavkabyemail(oAdmin.email,oAdmin.name,_paytrans.payorder_id,'гостем',new Date(),new Date(),'#cancelBronAdminNotice')).save()
   }
@@ -293,7 +319,7 @@ class BillingService {
       Account.get(_paytrans.account_id)?.moneyEarningsAccountUpdate(_paytrans.summa)
       oPayorder?.moneyEarningsOrderUpdate(_paytrans.summa)
       if (iPayorderStatus==-1){
-        def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+        def oAdmin = Admin.get(Tools.getIntVal(grailsApplication.config.notifyAdmin.id,2))
         def sEmailTemplate = (_paytrans.summa!=oPayorder.summa?'#badPayorderMoney3':(oPayorder.modstatus==-1&&oPayorder.confstatus==2)?'#badPayorderMoney':'#badPayorderMoney2')
         if (oAdmin?.email)
           (new Zayavkabyemail(oAdmin.email,oAdmin.name,oPayorder.id,'',new Date(),new Date(),sEmailTemplate)).save()
@@ -313,7 +339,7 @@ class BillingService {
     Account.get(_paytrans.account_id)?.moneyEarningsExternAccountUpdate(_paytrans.summa)
     oPayorder?.moneyEarningsExternOrderUpdate(_paytrans.summa,_paytrans.comment)
     if (iPayorderStatus==-1){
-      def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+      def oAdmin = Admin.get(Tools.getIntVal(grailsApplication.config.notifyAdmin.id,2))
       if (oAdmin?.email)
         (new Zayavkabyemail(oAdmin.email,oAdmin.name,oPayorder.id,'',new Date(),new Date(),'#badPayorderMoney')).save()
     }
@@ -396,7 +422,7 @@ class BillingService {
     if (oPayorder.dealstatus==0) {
       oPayorder.declineDealOrderUpdate()
       declineTrip(Trip.findByPayorder_id(_paytrans.payorder_id))
-      def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+      def oAdmin = Admin.get(Tools.getIntVal(grailsApplication.config.notifyAdmin.id,2))
       if (oAdmin?.email)
         (new Zayavkabyemail(oAdmin.email,oAdmin.name,oPayorder.id,'',new Date(),new Date(),'#declineDealClient')).save()
     } else {
@@ -428,6 +454,15 @@ class BillingService {
     } else {
       throw new Exception ('Unable to determine change sheme in transaction: '+_paytrans.id)
     }
+  }
+
+  private void transactionType24Handler(_paytrans){
+    def oPayorder = Payorder.get(_paytrans.payorder_id)
+    if (!oPayorder)
+      throw new Exception ('Where are no related payorder for transaction '+_paytrans.id)
+    Account.get(_paytrans.account_id)?.doConfirmationPayment(_paytrans.summa)
+    oPayorder.doConfirmation(_paytrans.summa)
+    Client.get(User.get(oPayorder.user_id)?.client_id?:0)?.csiSetPatnerstatus(2).save(failOnError:true)
   }
 
   void confirmTrip(oTrip){
@@ -547,6 +582,9 @@ class BillingService {
             iSumma = oObject.summa_ext?:oObject.summa_int
           }
           return new Paytrans(payorder_id:oObject.id,account_id:Account.findByClient_id(oObject.client_id)?.id,summa:iSumma,summa_val:iSumma,paytype_id:iType,comment:sComment).save(failOnError:true)?.id?:0l
+          break
+        case 24:
+          return new Paytrans(payorder_id:oObject.id,account_id:Account.findByClient_id(User.get(oObject.user_id)?.client_id?:0)?.id,summa:oObject.summa,summa_val:oObject.summa,paytype_id:iType,comment:sComment).save(failOnError:true)?.id?:0l
           break
         default:
           return 0l
@@ -698,9 +736,9 @@ class BillingService {
   }
   private def collectContext() {
     [
-      is_dev:(Tools.getIntVal(ConfigurationHolder.config.isdev,0)==1),
-      serverURL:(ConfigurationHolder.config.grails.mailServerURL?:ConfigurationHolder.config.grails.serverURL),
-      appname:ConfigurationHolder.config.grails.serverApp,
+      is_dev:(Tools.getIntVal(grailsApplication.config.isdev,0)==1),
+      serverURL:(grailsApplication.config.grails.mailServerURL?:grailsApplication.config.grails.serverURL),
+      appname:grailsApplication.config.grails.serverApp,
       lang:''
     ]
   }
@@ -772,7 +810,7 @@ class BillingService {
     }
   }
   private Integer computeOurComissionSumma(_summa,_type) {
-    return (_type==3?_summa:Math.round(_summa * (Tools.getIntVal(ConfigurationHolder.config.commision.our.percent,10) / 100)) as Integer)
+    return (_type==3?_summa:Math.round(_summa * (Tools.getIntVal(grailsApplication.config.commision.our.percent,10) / 100)) as Integer)
   }
 
   void processGenerateAct(){

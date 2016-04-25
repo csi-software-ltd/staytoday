@@ -54,13 +54,18 @@
             </tr>
             <tr>              
               <td colspan="3" class="bg_shadow">              
-                <div class="breadcrumbs" xmlns:v="http://rdf.data-vocabulary.org/#">
-                  <span typeof="v:Breadcrumb">
-                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" rel="v:url" property="v:title">${message(code:'label.main')}</a> &#8594;
-                  </span>
-                  <g:if test="${breadcrumbs?.country}">${breadcrumbs?.country['name'+context?.lang]?:''}</g:if>
-                  <g:else>${infotext['name'+context?.lang]?:''}</g:else>
-                </div>
+                <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <a href="${createLink(uri:'',base:context?.mainserverURL_lang)}" itemprop="item">
+                      <span itemprop="name">${message(code:'label.main')}</span>
+                    </a><meta itemprop="position" content="1" />
+                  </li> &#8594;
+                  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                    <span itemprop="item">
+                      <span itemprop="name"><g:if test="${breadcrumbs?.country}">${breadcrumbs?.country['name'+context?.lang]?:''}</g:if><g:else>${infotext['name'+context?.lang]?:''}</g:else></span>
+                    </span><meta itemprop="position" content="2" />
+                  </li>
+                </ul>
               </td>
             </tr>            
             <tr>

@@ -1,7 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 
 class SpecofferMailerService {
   def mailerService
+  def grailsApplication
 	boolean transactional = false
   grails.gsp.PageRenderer groovyPageRenderer
 
@@ -11,12 +12,12 @@ class SpecofferMailerService {
     hsRes.popcity=City.findAllByIs_specofferAndHomecountGreaterThan(1,10,[max:9,sort:'homecount',order:'desc'])    
     hsRes.popdirection=Popdirection.findAllByIs_specofferAndModstatus(1,1,[sort:'country_id',order:'asc'])
     
-    hsRes.imageurl = ConfigurationHolder.config.urlpopdiphoto
+    hsRes.imageurl = grailsApplication.config.urlpopdiphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(857)
     hsRes.valutaSym = Valuta.get(857).symbol
     
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if(hsRes?.user?.id)
       hsRes.user=User.get(hsRes?.user?.id)
     
@@ -50,14 +51,14 @@ class SpecofferMailerService {
       def minPricePopdir=oHomeSearch.csiGetMinPriceByRegion(reg_ids)
       minPricePopdir=((minPricePopdir?:[]).size()==1)?minPricePopdir[0]:0
       hsRes.minPricePopdir <<minPricePopdir 
-      hsRes.hotdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
-      hsRes.longdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
+      hsRes.hotdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
+      hsRes.longdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
       def poprecords = oHomeSearch.csiFindPopdirection(popdir.id)
       hsRes.poprecords<<(poprecords?:[]).size()
     }
 
     
-    hsRes.serverUrl=ConfigurationHolder.config.grails.serverURL?:''
+    hsRes.serverUrl=grailsApplication.config.grails.serverURL?:''
     hsRes.notice=[]
    
     def i=0      
@@ -83,8 +84,8 @@ class SpecofferMailerService {
           def mailText = sHtml.replace('[@NICKNAME]',user.nickname)
           
           try{
-            if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-              mailerService.sendMailGAE(mailText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,user.email,sHeader,0)        
+            if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+              mailerService.sendMailGAE(mailText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,user.email,sHeader,0)        
             else{          
               sendMail{
                 to user.email
@@ -95,7 +96,7 @@ class SpecofferMailerService {
           }catch(Exception e) {
             log.debug("Cannot sent email \n"+e.toString().replace("'","").replace('"','')+" in SpecofferMailerService")
           }
-          th.sleep(Tools.getIntVal(ConfigurationHolder.config.notemail.delay,15) *1000)
+          th.sleep(Tools.getIntVal(grailsApplication.config.notemail.delay,15) *1000)
         }
       }
     }		       		

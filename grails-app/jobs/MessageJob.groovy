@@ -1,10 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class MessageJob {
 	def messagesService
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.message.cron!=[:])?ConfigurationHolder.config.message.cron:"0 0 2 * * ?")
+		cron cronExpression: ((Holders.config.message.cron!=[:])?Holders.config.message.cron:"0 0 2 * * ?")
 	}
 
 	def execute() {

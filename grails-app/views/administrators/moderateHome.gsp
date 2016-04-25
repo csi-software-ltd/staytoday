@@ -361,7 +361,7 @@
         </td>        
       </tr>
       <tr>
-        <td colspan="5"><h1 class="blue">Форма модерации объявления № ${home.id}</h1></td>
+        <td colspan="5"><h1 class="blue">Форма модерации объявления № ${home.id}<g:if test="${home.unrealiable}"><font color="red">&nbsp;(недостоверное)</font></g:if></h1></td>
       </tr>
       <tr>
         <td colspan="5" valign="top">

@@ -1,12 +1,6 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-class Trip {  
-  
-  static mapping = {
-    version false
-  }
-
-  static constraints = {
-  }
+import grails.util.Holders
+class Trip {
+  static mapping = { version false }
 
   Long id
   Long home_id
@@ -35,8 +29,8 @@ class Trip {
     fromdate = new Date(oMbox.date_start.getTime())
     todate = new Date(oMbox.date_end.getTime())
     homeperson_id = oMbox.homeperson_id
-    price = lPayorderId?Math.round(oMbox.price * (1.0 + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))):oMbox.price
-    price_rub = lPayorderId?Math.round(oMbox.price_rub * (1.0 + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100))):oMbox.price_rub
+    price = lPayorderId?Math.round(oMbox.price * (1.0 + (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100))):oMbox.price
+    price_rub = lPayorderId?Math.round(oMbox.price_rub * (1.0 + (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100))):oMbox.price_rub
     valuta_id = oMbox.valuta_id
     rule_cancellation_id = Home.get(oMbox.home_id).rule_cancellation_id?:1
     mbox_id = oMbox.id

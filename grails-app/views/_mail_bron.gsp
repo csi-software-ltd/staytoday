@@ -103,15 +103,18 @@
                             <g:if test="${reserve?.id==3}"><br/><b><g:rawHtml>${ownerClient?.settlprocedure}</g:rawHtml></b></g:if>
                           </p>
                           <ul style="padding:0;margin:0;list-style:none outside none">
-                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF;margin-right:2px">
+                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF;margin:0 2px">
                               <span style="display:inline-block;float:left;background:url('http://staytoday.ru/images/payments.png') 0 0;height:50px;width:160px" title="Банковская карта"></span>
                             </li>
-                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF;margin-right:2px">
+                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF;margin:0 2px">
                               <span style="display:inline-block;float:left;background:url('http://staytoday.ru/images/payments.png') 0 -100px;height:50px;width:160px" title="WebMoney"></span>
                             </li>
-                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF">
+                            <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF;margin:0 2px;">
                               <span style="display:inline-block;float:left;background:url('http://staytoday.ru/images/payments.png') 17px -150px;height:50px;width:160px" title="Qiwi"></span>
                             </li>
+                           <li style="padding:5px 0;display:inline-block;float:left;border-radius:5px;border:1px solid #CFCFCF">
+                              <span style="display:inline-block;float:left;background:url('http://staytoday.ru/images/payments.png') 0 -500px;height:50px;width:160px" title="PayPal"></span>
+                            </li>                             
                           </ul>
                         </td>
                       </tr>

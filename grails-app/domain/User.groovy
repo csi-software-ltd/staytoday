@@ -1,8 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class User {
   def sessionFactory 
   def searchService
+
   static constraints = {
     tel (nullable:true,maxSize:50)
     tel1 (nullable:true,maxSize:50)
@@ -72,6 +72,7 @@ class User {
   Integer is_telaprove = 0
   Integer is_clientphoto = 0
   Integer gmt_id=0
+  String outer_id = ''
   Integer is_subscribe = 0
 
   String toString() {"${this.openid}" }  
@@ -87,14 +88,14 @@ class User {
           """
     def qSql=session.createSQLQuery(sSql)
     qSql.setString("name",hsUser.email);
-    qSql.setString("openid",ConfigurationHolder.config.user.internal.url+hsUser.email.replace('@','$'));
+    qSql.setString("openid",Holders.config.user.internal.url+hsUser.email.replace('@','$'));
     qSql.setString("password",hsUser.password?:'');    
     qSql.setString("firstname",hsUser.firstname);
     qSql.setString("lastname",hsUser.lastname);	
     qSql.setString("nickname",hsUser.nickname);
     qSql.setLong("client_id",hsUser.client_id);
     qSql.setLong("modstatus",hsUser?.client_id?2:0);
-    qSql.setLong("activityrating",Tools.getIntVal(ConfigurationHolder.config.addRating.newuser.rating,30));
+    qSql.setLong("activityrating",Tools.getIntVal(Holders.config.addRating.newuser.rating,30));
     qSql.setString("code",hsUser.code?:'')
     
     try{
@@ -121,7 +122,7 @@ class User {
     qSql.setString("provider",hsUser.provider?:'');
     qSql.setString("picture",hsUser.picture?:'');
     qSql.setLong("ref_id",hsUser.ref_id?:0);
-    qSql.setLong("activityrating",Tools.getIntVal(ConfigurationHolder.config.addRating.newuser.rating,30));
+    qSql.setLong("activityrating",Tools.getIntVal(Holders.config.addRating.newuser.rating,30));
     try{
       qSql.executeUpdate();
       return searchService.getLastInsert();
@@ -130,6 +131,30 @@ class User {
     }
     session.clear()
     return iId
+  }
+
+  def csiInsertAPIExternal(hsUser){
+    def session = sessionFactory.getCurrentSession()
+    def sSql="""
+          INSERT INTO user(openid,name,email,provider,banned,is_external,modstatus,nickname,outer_id,activityrating)
+          VALUES (:openid,:name,:email,:provider,0,1,2,:name,:outer_id,:activityrating)
+          ON DUPLICATE KEY  UPDATE name=:name,provider=:provider
+          """
+    def qSql=session.createSQLQuery(sSql)
+    qSql.setString("openid",hsUser.url?:'');
+    qSql.setString("name",hsUser.name?:'');
+    qSql.setString("email",hsUser.email?:'');
+    qSql.setString("provider",hsUser.provider?:'');
+    qSql.setString("outer_id",hsUser.outer_id?:'');
+    qSql.setLong("activityrating",Tools.getIntVal(Holders.config.addRating.newuser.rating,30));
+    try{
+      qSql.executeUpdate();
+      return searchService.getLastInsert();
+    }catch(Exception e){
+      log.debug("Users:csiInsertAPIExternal Cannot add new user. \n"+e.toString())
+    }
+    session.clear()
+    return 0
   }
   ////////////////////////////////////////////////////////////////////////////////
   def csiSelectUsers(sUserName,sNickname,sProvider,iModstatus,isClient,iNComment,iUserId,iTelchek,sRegistrDateFrom,sRegistrDateTo,sEnterDateFrom,sEnterDateTo,iOrder,iMax,iOffset){
@@ -204,6 +229,14 @@ class User {
       return false
     return true
   }
+
+  User apiNewUser(hsUser){
+    if (!hsUser.email||!hsUser.nickname) {
+      log.debug("User:apiNewUser. Not all the parameters are set. \n")
+      return null
+    }
+    User.get(csiInsertAPIExternal(url:hsUser.company+'_'+hsUser.outer_id,name:hsUser.nickname,email:hsUser.email,provider:'api',outer_id:hsUser.outer_id))
+  }
   ////////////////////////////////////////////////////////////////////////////
   /*def beforeUpdate() {
     lastdate = new Date()
@@ -235,10 +268,10 @@ class User {
         ),0)
         from Mbox
         where homeowner_cl_id=:cl_id and responsetime!=0
-      """,[cl_id:client_id,step1:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step1,3600) as Long,step2:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step2,21600) as Long,step3:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step3,86400) as Long])[0]
+      """,[cl_id:client_id,step1:Tools.getIntVal(Holders.config.responsegradation.step1,3600) as Long,step2:Tools.getIntVal(Holders.config.responsegradation.step2,21600) as Long,step3:Tools.getIntVal(Holders.config.responsegradation.step3,86400) as Long])[0]
     def respCount = Mbox.countByHomeowner_cl_idAndResponsetimeNotEqual(client_id,0)
     def reqCount = Mbox.countByHomeowner_cl_idAndInputdateGreaterThan(client_id,new Date(112,11,05))
-    def isDisplayRpCount = respCount>=Tools.getIntVal(ConfigurationHolder.config.responsegradation.respToDisplay,5)
+    def isDisplayRpCount = respCount>=Tools.getIntVal(Holders.config.responsegradation.respToDisplay,5)
     return [time:Math.round(respTime),rpCount:respCount,rqCount:reqCount,isDisplayRpCount:isDisplayRpCount]
   }
   def csiGetResponseTime() {
@@ -253,7 +286,7 @@ class User {
         ),0)
         from Mbox
         where homeowner_cl_id=:cl_id and responsetime!=0
-      """,[cl_id:client_id,step1:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step1,3600) as Long,step2:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step2,21600) as Long,step3:Tools.getIntVal(ConfigurationHolder.config.responsegradation.step3,86400) as Long])[0]
+      """,[cl_id:client_id,step1:Tools.getIntVal(Holders.config.responsegradation.step1,3600) as Long,step2:Tools.getIntVal(Holders.config.responsegradation.step2,21600) as Long,step3:Tools.getIntVal(Holders.config.responsegradation.step3,86400) as Long])[0]
     return [time:Math.round(respTime)]
   }
   User csiSetEnUser(){

@@ -1,5 +1,5 @@
 //special thanks to DM
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import java.math.RoundingMode
 
 class StatsController {
@@ -43,15 +43,15 @@ class StatsController {
     def hsRes=[data:[],inrequest:hsParams.inrequest]    	
 
     if(hsParams.inrequest.stat=='keywords')
-      hsRes.data=oStats.getStatsByKeyword(hsParams,Tools.getIntVal(ConfigurationHolder.config.request.max,30))
+      hsRes.data=oStats.getStatsByKeyword(hsParams,Tools.getIntVal(grailsApplication.config.request.max,30))
     else if(hsParams.inrequest.stat=='section')
       hsRes.data=oStats.getStatsBySection(hsParams,0)
     else if(hsParams.inrequest.stat=='service')
       hsRes.data=oStats.getStatsByService(hsParams,0)
     else if(hsParams.inrequest.stat=='home')
-      hsRes.data=oStats.getStatsByHome(hsParams,Tools.getIntVal(ConfigurationHolder.config.request.max,30))
+      hsRes.data=oStats.getStatsByHome(hsParams,Tools.getIntVal(grailsApplication.config.request.max,30))
     else if(hsParams.inrequest.stat=='prop')
-      hsRes.data=oStats.getStatsByProp(hsParams,Tools.getIntVal(ConfigurationHolder.config.request.max,30))
+      hsRes.data=oStats.getStatsByProp(hsParams,Tools.getIntVal(grailsApplication.config.request.max,30))
     return hsRes
   }
   ///////////////////////////////////////////////////////////////////////////////////////////

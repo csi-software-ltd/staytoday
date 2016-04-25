@@ -1,9 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class AdditionalRatingJob {
   def ratingService
 	static triggers = {
 		//simple repeatInterval: 200000 // execute job once in 200 seconds
-		cron cronExpression: ((ConfigurationHolder.config.additionalRating.cron!=[:])?ConfigurationHolder.config.additionalRating.cron:"0 0 5 ? * MON")
+		cron cronExpression: ((Holders.config.additionalRating.cron!=[:])?Holders.config.additionalRating.cron:"0 0 5 ? * MON")
 	}
 
 	def execute() {

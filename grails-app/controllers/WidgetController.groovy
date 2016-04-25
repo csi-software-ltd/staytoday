@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class WidgetController {
   def requestService
   /////////////////////////////////////////////////////////////////////////////////////
@@ -23,10 +23,10 @@ class WidgetController {
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.inrequest?.valuta_id?:hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.inrequest?.valuta_id?:hsRes.context.shown_valuta.id).symbol
 
-    hsRes.inrequest.max = Tools.getIntVal(ConfigurationHolder.config.widget.searchlisting.quantity.max,1)
-    hsRes+=oHomeSearch.csiFindByWhere(hsRes.inrequest.where?:'Россия',hsRes.inrequest.max,requestService.getOffset(),[order:-1],[minrating:Tools.getIntVal(ConfigurationHolder.config.widget.searchlisting.minrating.value,30)],true)
+    hsRes.inrequest.max = Tools.getIntVal(grailsApplication.config.widget.searchlisting.quantity.max,1)
+    hsRes+=oHomeSearch.csiFindByWhere(hsRes.inrequest.where?:'Россия',hsRes.inrequest.max,requestService.getOffset(),[order:-1],[minrating:Tools.getIntVal(grailsApplication.config.widget.searchlisting.minrating.value,30)],true)
 
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
 	
     requestService.setStatistic('widget',0,0,hsRes.count,hsRes.inrequest.where)
     return hsRes

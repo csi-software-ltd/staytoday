@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 import java.text.SimpleDateFormat
 import java.net.*
@@ -12,6 +12,7 @@ class IndexController {
   def billingService
   def smsService
   def ruToEnService
+  def apiService
   
   def COOKIENAME='last_home_detail'
   def static final DATE_FORMAT='yyyy-MM-dd'
@@ -29,14 +30,14 @@ class IndexController {
   def index = {          
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true,false,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'',base:hsRes.context?.mobileURL_lang,permanent:true)
       
     hsRes.inrequest = requestService.getParams(['modstatus']).inrequest
     hsRes.hometype=Hometype.list([sort:'regorder',order:'asc'])
     hsRes.homeperson=Homeperson.list()    
     hsRes.popdirection=Popdirection.findAllByModstatusAndIs_main(1,1,[sort:'rating',order:'desc'])
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
@@ -46,8 +47,8 @@ class IndexController {
     hsRes.records=oHomeSearch.csiFindMain()            
     hsRes.specoffer_records=oHomeSearch.csiFindSpecoffer()
     hsRes.specoffer_records.each{requestService.setStatistic('specoffer',0,it.id)}
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto    
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto    
+    hsRes.imageurl = grailsApplication.config.urluserphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -61,13 +62,13 @@ class IndexController {
     where h.modstatus=1 and h.city_id!=0 and h.city_id=c.id
     group by h.city_id
     having count(h.id) > :minCount
-    order by c.name""",["minCount":(Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.minCityCount,5) as long)])
+    order by c.name""",["minCount":(Tools.getIntVal(grailsApplication.config.index.cityTagCloud.minCityCount,5) as long)])
 
     hsRes.tagcloud = tagList.inject([:]){map,tag -> map[hsRes.context?.lang?tag[6]:tag[0]]=[count:tag[1],is_index:tag[2],name2:hsRes.context?.lang?tag[6]:tag[3],country_id:tag[4],domain:tag[5]];map}     
     
     hsRes.tagcloudParams = [:]
-    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
 
     requestService.setStatistic('index')
     
@@ -131,10 +132,10 @@ class IndexController {
   def about={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true,false,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/about',base:hsRes.context?.mobileURL_lang,permanent:true)
 
-    hsRes.urlvideo = ConfigurationHolder.config.urlvideolesson
+    hsRes.urlvideo = grailsApplication.config.urlvideolesson
     hsRes.lessons = Video_lesson.findAllByType_id(3,[sort:'nomer',order:'asc'])
 
     requestService.setStatistic('about')
@@ -164,7 +165,7 @@ class IndexController {
     requestService.init(this)    
     def hsRes=requestService.getContextAndDictionary(false,true,true,false,true)
     hsRes.howto=Howto.findAllByPageAndType_id('howto',1,[sort:'number',order:'asc'])
-    hsRes.urlvideo=ConfigurationHolder.config.urlvideolesson    
+    hsRes.urlvideo=grailsApplication.config.urlvideolesson    
     hsRes.lessons=Video_lesson.findAllByType_id(2,[sort:'nomer',order:'asc'])
     requestService.setStatistic('howto')
     return hsRes
@@ -173,7 +174,7 @@ class IndexController {
     requestService.init(this)    
     def hsRes=requestService.getContextAndDictionary(false,true,true,false,true)
     hsRes.howto=Howto.findAllByPageAndType_id('howto',2,[sort:'number',order:'asc'])    
-    hsRes.urlvideo=ConfigurationHolder.config.urlvideolesson
+    hsRes.urlvideo=grailsApplication.config.urlvideolesson
     hsRes.lessons=Video_lesson.findAllByType_id(1,[sort:'nomer',order:'asc'])    
     requestService.setStatistic('howto_hosting')
     return hsRes
@@ -188,7 +189,7 @@ class IndexController {
   def terms={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/terms',base:hsRes.context?.mobileURL_lang,permanent:true)
     requestService.setStatistic('terms')
     return hsRes    
@@ -203,7 +204,7 @@ class IndexController {
   def contract={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/contract',base:hsRes.context?.mobileURL_lang,permanent:true)
     requestService.setStatistic('contract')
     return hsRes  
@@ -227,7 +228,7 @@ class IndexController {
     def oVote = Votetable.get(1)
     if (hsRes.inrequest.save) {
       session.isVote = 1
-      requestService.setCookie('isVote',1.toString(),Tools.getIntVal(ConfigurationHolder.config.vote.timeout,2592000))	
+      requestService.setCookie('isVote',1.toString(),Tools.getIntVal(grailsApplication.config.vote.timeout,2592000))	
       def rat_incr = "rating_" + hsRes.inrequest.mainVote
       oVote."${rat_incr}"++
       oVote.sum++
@@ -245,7 +246,7 @@ class IndexController {
   def clickbanner={
     requestService.init(this)
     def lId=requestService.getLongDef('id',0)
-    def sUrl=ConfigurationHolder.config.default_banner_url
+    def sUrl=grailsApplication.config.default_banner_url
     if(lId>0)
       sUrl=bannersService.getRedirectBanner(lId)              	
     redirect(url:sUrl)
@@ -284,16 +285,16 @@ class IndexController {
       hsRes.hometype=Hometype.list()
       hsRes.homeclass=Homeclass.list()
       hsRes.homeperson=Homeperson.list()
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto
-      hsRes.imageurl = ConfigurationHolder.config.urlpopdiphoto
+      hsRes.urlphoto = grailsApplication.config.urlphoto
+      hsRes.imageurl = grailsApplication.config.urlpopdiphoto
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
       def oHome = new HomeSearch()
       hsRes.poprecords = oHome.csiFindPopdirection(hsRes.popdirection.id)        
       hsRes.poprecordsMap = oHome.csiFindPopdirection(hsRes.popdirection.id,-1)      
-      hsRes.hotdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
-      hsRes.longdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
+      hsRes.hotdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
+      hsRes.longdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
       hsRes.nextdirection = Popdirection.get(hsRes.popdirection.nextdir)
       hsRes.previousdirection = Popdirection.get(hsRes.popdirection.previousdir)
       hsRes.articles = Articles.withCriteria {
@@ -311,8 +312,8 @@ class IndexController {
         order by c.name""",[p_id:hsRes.popdirection.id])
       hsRes.directionCities = hsRes.directionCitiesMap.inject([:]){map,tag -> map[tag[hsRes.context?.lang?8:0]]=[count:tag[1],is_index:tag[4],name2:tag[hsRes.context?.lang?8:5],country_id:tag[6],domain:tag[7],city_id:tag[9]];map}
       hsRes.tagcloudParams = [:]
-      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
       
       def sLastHome=requestService.getCookie(COOKIENAME)
       hsRes.lastHome=[]
@@ -325,7 +326,7 @@ class IndexController {
       response.sendError(404)
       return
     }
-    hsRes.map_home_scale= Tools.getIntVal(ConfigurationHolder.config.map.home.scale,11)    
+    hsRes.map_home_scale= Tools.getIntVal(grailsApplication.config.map.home.scale,11)    
     requestService.setStatistic('popdirection',0,0,0,'',hsRes.popdirection.id.toString()) 
 
     if(hsRes.context?.lang){
@@ -373,8 +374,8 @@ class IndexController {
       }        
       hsRes.specoffer_records=oHomeSearch.csiFindSpecoffer(hsRes.sId)
       hsRes.specoffer_records.each{requestService.setStatistic('specoffer',0,it.id)}
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto
-      hsRes.imageurl = ConfigurationHolder.config.urlpopdiphoto
+      hsRes.urlphoto = grailsApplication.config.urlphoto
+      hsRes.imageurl = grailsApplication.config.urlpopdiphoto
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -423,11 +424,11 @@ class IndexController {
       where h.modstatus=1 and h.city_id!=0 and h.city_id=c.id
       group by h.city_id
       having count(h.id) > :minCount
-      order by c.name""",["minCount":(Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.minCityCount,5) as long)])
+      order by c.name""",["minCount":(Tools.getIntVal(grailsApplication.config.index.cityTagCloud.minCityCount,5) as long)])
     hsRes.citycloud = cityList.inject([:]){map,tag -> map[tag[hsRes.context?.lang?1:0]]=[count:tag[2],is_index:tag[3],name2:tag[hsRes.context?.lang?1:4],country_id:tag[5],domain:tag[6]];map}
     hsRes.citycloudParams = [:]
-    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)    
+    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)    
     def tagList = Articles.withCriteria {
       createAlias('tags','t')
       eq('modstatus',1)
@@ -438,8 +439,8 @@ class IndexController {
     }
     hsRes.tagcloud = tagList.inject([:]){map,tag -> map[tag[0]]=tag[1];map}
     hsRes.tagcloudParams = [:]
-    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.timeline.filter.fontCount.max,5)
-    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.timeline.filter.fontCount.middle,1)
+    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.timeline.filter.fontCount.max,5)
+    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.timeline.filter.fontCount.middle,1)
     
     if(hsRes.sId)
       requestService.setStatistic('directioncountry',0,0,0,'',hsRes.countries[0].id.toString())
@@ -476,13 +477,13 @@ class IndexController {
       hsRes.hometype=Hometype.list([sort:'id',order:'asc'])
 
       hsRes.homeperson=Homeperson.list()
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+      hsRes.urlphoto = grailsApplication.config.urlphoto
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
       def oHome = new HomeSearch()
-      hsRes.hotdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false)
-      hsRes.longdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false)
+      hsRes.hotdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false)
+      hsRes.longdiscount = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false)
       hsRes.nextdirection = Popdirection.get(hsRes.popdirection.nextdir)
       hsRes.previousdirection = Popdirection.get(hsRes.popdirection.previousdir)
       hsRes.directionCities = Region.executeQuery("""select c.name,c.name_en,c.homecount,c.is_index,c.domain
@@ -490,8 +491,8 @@ class IndexController {
           where c.region_id=r.id and r.popdirection_id=:p_id and c.homecount>0
           order by c.name""",[p_id:hsRes.popdirection.id]).inject([:]){map,tag -> map[tag[hsRes.context?.lang?1:0]]=[count:tag[2],is_index:tag[3],domain:tag[4]];map}
       hsRes.tagcloudParams = [:]
-      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
     //Transliterate
       if(hsRes.context?.lang){      
         for(oHomeTmp in hsRes.hotdiscount.records){
@@ -530,12 +531,12 @@ class IndexController {
       hsRes.homeclass=Homeclass.list([sort:'id',order:'asc'])
 
       hsRes.homeperson=Homeperson.list()
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+      hsRes.urlphoto = grailsApplication.config.urlphoto
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
       def oHome = new HomeSearch()
-      hsRes.poprecords = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(ConfigurationHolder.config.popdirection.home_quantity,9),0,[hometype_id:2,order:-1],[:],true).records
+      hsRes.poprecords = oHome.csiFindByWhere(hsRes.popdirection.keyword,Tools.getIntVal(grailsApplication.config.popdirection.home_quantity,9),0,[hometype_id:2,order:-1],[:],true).records
       hsRes.poprecordsMap = oHome.csiFindByWhere(hsRes.popdirection.keyword,-1,0,[hometype_id:2,order:-1],[:],true).records
       hsRes.anotherCottageDirections = Popdirection.findAllByIs_cottageAndIdNotEqual(1,hsRes.popdirection.id)
 
@@ -546,8 +547,8 @@ class IndexController {
       hsRes.directionCities = hsRes.directionCitiesMap.inject([:]){map,tag -> map[tag[hsRes.context?.lang?6:0]]=[count:tag[1],is_index:tag[2],name2:tag[hsRes.context?.lang?6:3],country_id:tag[4],domain:tag[5],city_id:tag[7]];map}
               
       hsRes.tagcloudParams = [:]
-      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+      hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+      hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
       
       def sLastHome=requestService.getCookie(COOKIENAME)
       hsRes.lastHome=[]
@@ -560,7 +561,7 @@ class IndexController {
       response.sendError(404)
       return
     }    
-    hsRes.map_home_scale= Tools.getIntVal(ConfigurationHolder.config.map.home.scale,11)    
+    hsRes.map_home_scale= Tools.getIntVal(grailsApplication.config.map.home.scale,11)    
     
     if(hsRes.context?.lang){
       def lsPoprecords=[]
@@ -634,7 +635,7 @@ class IndexController {
     def hsRes=requestService.getContextAndDictionary(true)
     def country_id=requestService.getIntDef('country_id',1)
     hsRes.data = Popdirection.findAll('FROM Popdirection WHERE country_id=:country_id AND modstatus=1 ORDER BY rating desc, name2 asc',[country_id:country_id?:1])
-    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(ConfigurationHolder.config.popdirection.quantity,10)])
+    hsRes.popdirection=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(grailsApplication.config.popdirection.quantity,10)])
     hsRes.countryIds = hsRes.popdirection.collect{it.country_id}
     hsRes.countryIds.unique()
     hsRes.countries = Country.list()    
@@ -645,7 +646,7 @@ class IndexController {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)
     def country_id=requestService.getIntDef('country_id',1)
-    hsRes.data = City.findAll('FROM City WHERE country_id=:country_id AND homecount>10 ORDER BY case when homecount>:homecountsort then homecount else 0 end desc, name asc',[country_id:country_id?:1,homecountsort:Tools.getIntVal(ConfigurationHolder.config.popcities.homecountsort,70)])
+    hsRes.data = City.findAll('FROM City WHERE country_id=:country_id AND homecount>10 ORDER BY case when homecount>:homecountsort then homecount else 0 end desc, name asc',[country_id:country_id?:1,homecountsort:Tools.getIntVal(grailsApplication.config.popcities.homecountsort,70)])
     hsRes.countries = Country.findAllByIs_popcities(1)
     return hsRes
   }
@@ -664,7 +665,7 @@ class IndexController {
     hsRes+=requestService.getParams(['year','month','day'],null,['blog','id'])
     hsRes.inrequest.tag = requestService.getStringList('tag')    
     
-    hsRes+=Tools.getCalendarFilter(message(code:'calendar.monthName').split(','),Tools.getIntVal(ConfigurationHolder.config.timeline.filter.min.year,2011),Tools.getIntVal(ConfigurationHolder.config.timeline.filter.min.month,8))
+    hsRes+=Tools.getCalendarFilter(message(code:'calendar.monthName').split(','),Tools.getIntVal(grailsApplication.config.timeline.filter.min.year,2011),Tools.getIntVal(grailsApplication.config.timeline.filter.min.month,8))
     hsRes.filterAuthors = Articles.findAll('from Articles where modstatus=1 group by author order by count(author) desc',[max:10]).collect{it.author}
     if ((hsRes.inrequest.blog?:'all')!='all'&&!hsRes.filterAuthors.contains(hsRes.inrequest.blog)) {
       //not working correctly, when authors more than 10
@@ -681,20 +682,20 @@ class IndexController {
     }
     hsRes.tagcloud = tagList.inject([:]){map,tag -> map[tag[0]]=tag[1];map}
     hsRes.tagcloudParams = [:]
-    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.timeline.filter.fontCount.max,5)
-    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.timeline.filter.fontCount.middle,1)
-    hsRes.popdirections=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(ConfigurationHolder.config.popdirection.quantity,10)])
-    hsRes.imageurl = ConfigurationHolder.config.urlarticlesphoto
+    hsRes.tagcloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.timeline.filter.fontCount.max,5)
+    hsRes.tagcloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.timeline.filter.fontCount.middle,1)
+    hsRes.popdirections=Popdirection.findAll('FROM Popdirection WHERE modstatus=1 ORDER BY rating desc',[max:Tools.getIntVal(grailsApplication.config.popdirection.quantity,10)])
+    hsRes.imageurl = grailsApplication.config.urlarticlesphoto
     def cityList = Home.executeQuery("""select c.name,c.name_en,count(h.id),c.is_index,c.country_id,c.name2,c.domain
       from Home h, City c
       where h.modstatus=1 and h.city_id!=0 and h.city_id=c.id
       group by h.city_id
       having count(h.id) > :minCount
-      order by c.name""",["minCount":(Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.minCityCount,5) as long)])
+      order by c.name""",["minCount":(Tools.getIntVal(grailsApplication.config.index.cityTagCloud.minCityCount,5) as long)])
     hsRes.citycloud = cityList.inject([:]){map,tag -> map[tag[hsRes.context?.lang?1:0]]=[count:tag[2],is_index:tag[3],country_id:tag[4],name2:tag[hsRes.context?.lang?1:5],domain:tag[6]];map}
     hsRes.citycloudParams = [:]
-    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)    
+    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)    
     if (hsRes.inrequest.tag)
       hsRes.poptag=Popdirection.findByTagnameInList(hsRes.inrequest?.tag)?."${'name2'+hsRes.context?.lang}"?:(City.findByTagnameInList(hsRes.inrequest?.tag)?."${'name'+hsRes.context?.lang}"?:(Articles_tags.findByName(hsRes.inrequest?.tag[0])?."${'header'+hsRes.context?.lang}"?:''))        
     if (hsRes.inrequest.id){
@@ -750,7 +751,7 @@ class IndexController {
       response.sendError(404)
       return
     }
-    hsRes.imageurl = ConfigurationHolder.config.urlarticlesphoto
+    hsRes.imageurl = grailsApplication.config.urlarticlesphoto
     //return hsRes
     render(template: "/blog", model: hsRes)
     return
@@ -785,8 +786,8 @@ class IndexController {
     hsRes.hometype=Hometype.list([sort:'name',order:'asc'])
     hsRes.homeperson=Homeperson.list()
 	  hsRes.country=Country.list([sort:'regorder',order:'asc'])
-	  hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-	  hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+	  hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+	  hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 	  hsRes.timetodecide=Timetodecide.findAllByDaysLessThan(31)
     hsRes.valuta=Valuta.findAllByModstatus(1,[sort:'regorder',order:'asc'])
 	
@@ -920,7 +921,7 @@ class IndexController {
           flash.error<<8
         }
       if(!(flash.error.size())){
-        def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+        def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
         if (hsRes.inrequest?.ztext.size()>stringlimit) hsRes.inrequest?.ztext = hsRes.inrequest?.ztext.substring(0, stringlimit)
           def oZayavka = new Zayavka(hsRes.inrequest, hsRes.user.id, DATE_FORMAT)
         try{
@@ -1302,7 +1303,7 @@ class IndexController {
       return
     }
     def hsRes=[:]
-    hsRes+=Tools.getCalendarFilter(message(code:'calendar.monthName').split(','),Tools.getIntVal(ConfigurationHolder.config.timeline.filter.min.year,2011),Tools.getIntVal(ConfigurationHolder.config.timeline.filter.min.month,8))
+    hsRes+=Tools.getCalendarFilter(message(code:'calendar.monthName').split(','),Tools.getIntVal(grailsApplication.config.timeline.filter.min.year,2011),Tools.getIntVal(grailsApplication.config.timeline.filter.min.month,8))
     hsRes.filterAuthors = Articles.findAll('from Articles where modstatus=1 group by author order by count(author) desc',[max:10]).collect{it.author}
     def tagList = Articles.withCriteria {
       createAlias('tags','t')
@@ -1492,20 +1493,22 @@ class IndexController {
   }
 
   def advToAbook = {
+    def counter = 0
     render(contentType: 'text/xml', encoding: 'UTF-8') {
       mkp.yieldUnescaped '<?xml version="1.0" encoding="utf-8"?>'
       def today = Calendar.getInstance()
       def expire = today.clone()
       expire.add(Calendar.YEAR, 1)
-      def counter = 0
-      'realty-feed'(xmlns: "http://webmaster.yandex.ru/schemas/feed/realty/2010-06") {
+      def valutaRate = new Valutarate().csiGetRate(840)
+      'realty-feed'{
         'generation-date'((new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(today.getTime())).toString()[0..-3]+':00')
-        for(oHome in Home.findAll{ modstatus == 1 && region_id in [66,77,78]}){
+        for(oHome in (Tools.getIntVal(Dynconfig.findByName('global.partner.exportonlyverified.enable')?.value,0)?new Home().csiGetPartnerHome():Home.findAll{ modstatus == 1 && region_id in [77,78,42,24,66,54,23,2,257,52,56,64,16,117,115,165]})){//66 - екат
           def oUser = User.findByClient_id(oHome.client_id)
-          def oHmp = Homeprop.findAll("FROM Homeprop WHERE date_end>=current_date AND home_id=:home_id AND modstatus=1 AND term>0 AND price_rub>=4500 ORDER BY date_start",[home_id:oHome.id])
-          if (oHmp.size()==0||++counter>10) continue;
+          def oHmp = Homeprop.findAll("FROM Homeprop WHERE date_end>=current_date AND home_id=:home_id AND modstatus=1 AND term>0 AND price_rub>=1500 ORDER BY date_start",[home_id:oHome.id])
+          if (oHmp.size()==0/*||++counter>10*/) continue;
+          ++counter
           offer('internal-id':oHome.id,'last-update':(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ").format(oHome.moddate>(new Date()-30)?oHome.moddate:new Date()-3)).toString()[0..-3]+':00') {
-            name(Tools.transliterate(oHome.name,0))
+            name(oHome.id+'-'+Tools.transliterate(oHome.name,0))
             category(Hometype.get(oHome.hometype_id)?.name_en?:'apartment')
             url(g.createLink(base: "http://staytoday.ru", mapping:'hView_en', params:[country:Country.get(oHome.country_id)?.urlname,city:City.get(oHome.city_id)?.name_en?:Tools.transliterate(oHome.city,0),linkname:oHome.linkname]))
             location{
@@ -1516,28 +1519,28 @@ class IndexController {
               longitude(oHome.x/100000)
             }
             'sales-agent'{
-              name(Tools.transliterate(oUser.firstname?:oUser.nickname,0))
-              phone(oUser.tel)
-              email(oUser.email)
+              name(Tools.transliterate(oUser?.firstname?:oUser?.nickname,0))
+              phone(oUser?.tel)
+              email(oUser?.email)
             }
             rateperiods{
               oHmp.each{ hmp ->
                 rateperiod{
                   startdate(hmp.date_start.format(DATE_FORMAT))
                   enddate(hmp.date_end.format(DATE_FORMAT))
-                  dailyrate(hmp.price)
-                  weekendrate(hmp.priceweekend)
-                  weekrate(hmp.priceweek)
-                  monthrate(hmp.pricemonth)
-                  currency(Valuta.get(hmp.valuta_id).code)
+                  dailyrate(hmp.valuta_id!=840?Math.rint(100.0 * (hmp.price_rub?:0) / valutaRate) / 100.0:hmp.price)
+                  weekendrate(hmp.valuta_id!=840?Math.rint(100.0 * (hmp.priceweekend_rub?:0) / valutaRate) / 100.0:hmp.priceweekend)
+                  weekrate(hmp.valuta_id!=840?Math.rint(100.0 * (hmp.priceweek_rub?:0) / valutaRate) / 100.0:hmp.priceweek)
+                  monthrate(hmp.valuta_id!=840?Math.rint(100.0 * (hmp.pricemonth_rub?:0) / valutaRate) / 100.0:hmp.pricemonth)
+                  currency('USD')
                 }
               }
             }
             if (oHome.deposit>0||oHome.fee>0||oHome.cleanup>0){
               fees{
-                if(oHome.deposit>0) fee(type:'deposit'){ cost(oHome.deposit); currency(Valuta.get(oHome.valuta_id).code) }
-                if(oHome.fee>0) fee(type:'per_addperson'){ cost(oHome.fee); currency(Valuta.get(oHome.valuta_id).code) }
-                if(oHome.cleanup>0) fee(type:'cleaning'){ cost(oHome.cleanup); currency(Valuta.get(oHome.valuta_id).code) }
+                if(oHome.deposit>0) fee(type:'deposit'){ cost(oHome.valuta_id!=840?Math.rint(100.0 * oHome.deposit / valutaRate) / 100.0:oHome.deposit); currency('USD') }
+                if(oHome.fee>0) fee(type:'per_addperson'){ cost(oHome.valuta_id!=840?Math.rint(100.0 * oHome.fee / valutaRate) / 100.0:oHome.fee); currency('USD') }
+                if(oHome.cleanup>0) fee(type:'cleaning'){ cost(oHome.valuta_id!=840?Math.rint(100.0 * oHome.cleanup / valutaRate) / 100.0:oHome.cleanup); currency('USD') }
               }
             }
             def lsPhoto = Homephoto.findAllByHome_id(oHome.id)
@@ -1582,10 +1585,13 @@ class IndexController {
               is_coffee(oHome.is_coffee as Boolean)
               is_jacussi(oHome.is_jacuzzi as Boolean)
             }
+            rating(oHome.rating)
+            paymentType(Partnerway.get(Client.get(oHome.client_id)?.partnerway_id?:0)?.name_en?:'Cash')
           }
         }
       }
     }
+    log.debug("advToAbook. offer count: "+counter)
   }
 
   def islandsToYandex = {        
@@ -1884,7 +1890,7 @@ class IndexController {
   def robots = {
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(true)
-    if(Tools.getIntVal(ConfigurationHolder.config.is_robots_txt,0)){
+    if(Tools.getIntVal(grailsApplication.config.is_robots_txt,0)){
       if(hsRes.context.is_dev){
         render(contentType: 'text/plain', encoding: 'UTF-8'){ 
           mkp.yield Temp_robots.findWhere(is_dev:1,domain:request.serverName)?.robots?:''
@@ -1917,9 +1923,9 @@ class IndexController {
       return
     }
     hsRes.configParams = [
-      secretKey:ConfigurationHolder.config.wmoney.secretKey?ConfigurationHolder.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
-      merchant:ConfigurationHolder.config.wmoney.merchant?ConfigurationHolder.config.wmoney.merchant.trim():'R309646236390',
-      testmode:Tools.getIntVal(ConfigurationHolder.config.wmoney.testmode,1)
+      secretKey:grailsApplication.config.wmoney.secretKey?grailsApplication.config.wmoney.secretKey.trim():'8D38F03EE4415A6E0199AB6D66051F64',
+      merchant:grailsApplication.config.wmoney.merchant?grailsApplication.config.wmoney.merchant.trim():'R309646236390',
+      testmode:Tools.getIntVal(grailsApplication.config.wmoney.testmode,1)
     ]
     hsRes.purchaseamt = hsRes.configParams.testmode?1f:(hsRes.payorder.summa as float)
     def requestStr = ''
@@ -1955,12 +1961,12 @@ class IndexController {
     hsRes.popcity=City.findAllByIs_specofferAndHomecountGreaterThan(1,10,[max:9,sort:'homecount',order:'desc'])    
     hsRes.popdirection=Popdirection.findAllByIs_specofferAndModstatus(1,1,[sort:'country_id',order:'asc'])
     
-    hsRes.imageurl = ConfigurationHolder.config.urlpopdiphoto
+    hsRes.imageurl = grailsApplication.config.urlpopdiphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
     
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if(hsRes?.user?.id)
       hsRes.user=User.get(hsRes?.user?.id)
     
@@ -1994,8 +2000,8 @@ class IndexController {
       def minPricePopdir=oHomeSearch.csiGetMinPriceByRegion(reg_ids)
       minPricePopdir=((minPricePopdir?:[]).size()==1)?minPricePopdir[0]:0
       hsRes.minPricePopdir << minPricePopdir 
-      hsRes.hotdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
-      hsRes.longdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(ConfigurationHolder.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
+      hsRes.hotdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[hotdiscount:1],true,false).count
+      hsRes.longdiscount << oHomeSearch.csiFindByWhere(popdir.keyword,Tools.getIntVal(grailsApplication.config.discounts.quantity.max,-1),0,[order:-1],[longdiscount:1],true,false).count     
       def poprecords = oHomeSearch.csiFindPopdirection(popdir.id)
       hsRes.poprecords<<(poprecords?:[]).size()
     }
@@ -2050,7 +2056,7 @@ class IndexController {
   def unsubscribe={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true)
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if(hsRes?.user?.id)
       hsRes.user=User.get(hsRes?.user?.id)     
     return hsRes
@@ -2115,30 +2121,48 @@ class IndexController {
     }
     render(contentType:"application/json"){[error:false]}
     return
-  } 
-
-  def justtest={  
-	  def hsRes=[:]
-    //ruToEnService.setEnHomeFulladress()
-    //ruToEnService.setEnHomeInfraoption()
-    
-    /*ruToEnService.setEnStreet()    
-    ruToEnService.setEnRegion()
-    ruToEnService.setEnCity()
-    ruToEnService.setEnDistrict()
-    ruToEnService.setEnMetro()
-    ruToEnService.setEnCitysight()*/
-    //ruToEnService.setEnPopdirection()
-    
-    return hsRes
-  }    
-  def justtest2={
-  //response.outputStream << new File(ConfigurationHolder.config.pathtophoto.toString()+'1.gif').getBytes() // write the image to the outputstream
-  //response.outputStream.flush()
-  //log.debug('justtest2')
-  //requestService.init()
-  //log.debug('!!!'+requestService.getStr('text'))    
   }
+
+  def justtest = {
+/*    def _paytrans = Api_response.get(1)
+    def sUrl = 'http://www.abookingnet.com'
+//    def sUrl = 'http://api.abookingnet.mod.bz'
+    def sPath = '/api/host/booking/quote.xml'
+//    def sPath = '/api/provider/xml/booking/quote'
+    def hsBody = [:]
+    hsBody.id = _paytrans.outer_id
+    hsBody.checkIn = _paytrans.date_start.format(DATE_FORMAT)
+    hsBody.checkOut = _paytrans.date_end.format(DATE_FORMAT)
+    hsBody.total = _paytrans.price
+    hsBody.currency = "USD"
+    hsBody.guests = _paytrans.homeperson_id
+    hsBody.comment = _paytrans.mtext
+    hsBody.api_key = /*Api.get(_paytrans.api_id)?.outer_key?:''
+    if (!smsService.postJSONdata(sUrl,sPath,hsBody)) {
+      println ('Error: bad response: '+_paytrans.id)
+    }
+    //render smsService.testapi()
+    //render(contentType: 'text/xml', encoding: 'UTF-8', text:smsService.testapi())
+    //apiService.doResponse(1)*/
+    render "<OK/>"
+  }
+
+  def justtest3 = {
+/*    println 2222
+      response.setHeader("Content-disposition", "attachment; filename=Viborka.csv")    
+   
+    response.contentType = 'text/csv;charset=windows-1251'
+    response.outputStream << 'sCsv'.getBytes('windows-1251');
+    response.outputStream.flush()     */
+    render file: 'sCsv'.getBytes('windows-1251'), contentType: 'image/jpeg'
+  }
+  def justtest2 = {
+    println "justtest2"
+    println request.JSON
+    render ([success:true] as JSON)
+    //render ([success:false,status:100500] as JSON)
+  }
+
   def mail_test={
     requestService.init(this)       
     

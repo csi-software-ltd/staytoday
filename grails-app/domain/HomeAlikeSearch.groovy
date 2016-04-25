@@ -1,17 +1,13 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class HomeAlikeSearch {
   def searchService
 
-  static constraints = {
-  }
-
-  static mapping = {    
+  static mapping = {
     table 'DUMMY_NAME'
     version false
-    cache false 
-  }	
-  
+    cache false
+  }
+
   Long id
   Long client_id
   String name
@@ -44,8 +40,8 @@ class HomeAlikeSearch {
 						 and date_end>=current_date AND (price_rub>=:pricem AND price_rub<=:priceb) order by date_start asc limit 1),0)))""",
                  order  :'distance(x,y,:x2,:y2)']
 
-	def coordRange = Tools.getIntVal(ConfigurationHolder.config.home.view.alike.coordinates.range,20000)
-	def priceRange = Tools.getIntVal(ConfigurationHolder.config.home.view.alike.price.range,0.25)
+	def coordRange = Tools.getIntVal(Holders.config.home.view.alike.coordinates.range,20000)
+	def priceRange = Tools.getIntVal(Holders.config.home.view.alike.price.range,0.25)
 	def hsLong = [:]
 	hsLong['x2']=x2
     hsLong['y2']=y2
@@ -57,7 +53,7 @@ class HomeAlikeSearch {
 	hsLong['priceb']=lPrice+(priceRange*lPrice as long)
 	hsLong['id']=lId
 
-    return searchService.fetchData(hsSql,hsLong,null,null,null,HomeAlikeSearch.class,Tools.getIntVal(ConfigurationHolder.config.home.view.alike.homes_max,3))
+    return searchService.fetchData(hsSql,hsLong,null,null,null,HomeAlikeSearch.class,Tools.getIntVal(Holders.config.home.view.alike.homes_max,3))
   }
   def csiFindAnotherHomes(x2,y2,lId,lClient_id){	
     def hsSql = [select :"""*,distance(x,y,:x2,:y2) as distance,
@@ -72,7 +68,7 @@ class HomeAlikeSearch {
 	hsLong['id']=lId
 	hsLong['client_id']=lClient_id
 
-    return searchService.fetchData(hsSql,hsLong,null,null,null,HomeAlikeSearch.class,Tools.getIntVal(ConfigurationHolder.config.home.view.client_another_homes_max,3))
+    return searchService.fetchData(hsSql,hsLong,null,null,null,HomeAlikeSearch.class,Tools.getIntVal(Holders.config.home.view.client_another_homes_max,3))
   }
 
   def csiGetHomeWithPrice(lId){	

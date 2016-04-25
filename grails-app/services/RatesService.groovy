@@ -1,6 +1,7 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class RatesService {
   def sessionFactory
+  def grailsApplication
   def propertyInstanceMap = org.codehaus.groovy.grails.plugins.DomainClassGrailsPlugin.PROPERTY_INSTANCE_MAP  
   boolean transactional = true
   
@@ -14,8 +15,8 @@ class RatesService {
     
   def getRates() {
     log.debug("Fetch CBR rates ")  
-    def sUrl=ConfigurationHolder.config.cbr?.url
-    def sCodepage=ConfigurationHolder.config.cbr?.codepage
+    def sUrl=grailsApplication.config.cbr?.url
+    def sCodepage=grailsApplication.config.cbr?.codepage
     
     def oFeed
     def sContent
@@ -23,7 +24,7 @@ class RatesService {
     def i=0
     while(!sContent){          
       if(i)
-        Thread.currentThread().sleep(Tools.getIntVal(ConfigurationHolder.config.rates.delay,300) *1000)
+        Thread.currentThread().sleep(Tools.getIntVal(grailsApplication.config.rates.delay,300) *1000)
      
       try{    
         def oUrl = new URL(sUrl ?: 'http://www.cbr.ru/scripts/XML_daily.asp')

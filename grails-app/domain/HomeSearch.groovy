@@ -1,14 +1,13 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class HomeSearch {
   def searchService
-  
-  static mapping = {    
+
+  static mapping = {
     table 'DUMMY_NAME'
     version false
-    cache false 
-  }	
-  
+    cache false
+  }
+
   Long id
   Long hid
   Long client_id
@@ -116,7 +115,7 @@ class HomeSearch {
                  where  :'home.client_id=user.client_id and is_am=1 and mainpicture is not null and home.modstatus=1 and is_mainpage=1',
                  order  :'rand()']
 
-    return searchService.fetchData(hsSql,null,null,null,null,HomeSearch.class,Tools.getIntVal(ConfigurationHolder.config.mainpage.home.max,10))
+    return searchService.fetchData(hsSql,null,null,null,null,HomeSearch.class,Tools.getIntVal(Holders.config.mainpage.home.max,10))
   }
 
   def csiFindSpecoffer(sId=''){
@@ -134,7 +133,7 @@ class HomeSearch {
       def iCountryId=Country.findByUrlname(sId)?.id  
       hsInt['country_id']=iCountryId
     }
-    return searchService.fetchData(hsSql,null,hsInt,null,null,HomeSearch.class,Tools.getIntVal(ConfigurationHolder.config.mainpage.specoffer_home.max,4))
+    return searchService.fetchData(hsSql,null,hsInt,null,null,HomeSearch.class,Tools.getIntVal(Holders.config.mainpage.specoffer_home.max,4))
   }
 
   def csiFindByWhere(sWhere,iMax,iOffset,hsMainFilter,hsFilter,bFindHome,bFindOption=false,bNear=false,bMetro=false,bCitySight=false,sLang=''){
@@ -180,9 +179,9 @@ class HomeSearch {
        
       hsSphinx=Sphinx.searchBySphinxLimit(sSearch,sIndexName,log,iMax,iOffset,hsMainFilter,hsFilter,true,null,null,bNear)
       if (hsFilter?.minrating?:0) {//using for widget. If count less than minimum permissible value, canceling "minrating" filter parameter.      
-        hsSphinx?.totalFound>Tools.getIntVal(ConfigurationHolder.config.widget.searchlisting.minrating.resultcount,5)?'':(hsSphinx=Sphinx.searchBySphinxLimit(sSearch,sIndexName,log,iMax,iOffset,hsMainFilter,(hsFilter-[minrating:hsFilter?.minrating]),true,null,null,bNear))
+        hsSphinx?.totalFound>Tools.getIntVal(Holders.config.widget.searchlisting.minrating.resultcount,5)?'':(hsSphinx=Sphinx.searchBySphinxLimit(sSearch,sIndexName,log,iMax,iOffset,hsMainFilter,(hsFilter-[minrating:hsFilter?.minrating]),true,null,null,bNear))
       }
-      hsRes.count=(hsSphinx.totalFound>Tools.getIntVal(ConfigurationHolder.config.sphinx.limit))?Tools.getIntVal(ConfigurationHolder.config.sphinx.limit):hsSphinx.totalFound              
+      hsRes.count=(hsSphinx.totalFound>Tools.getIntVal(Holders.config.sphinx.limit))?Tools.getIntVal(Holders.config.sphinx.limit):hsSphinx.totalFound              
     }   
 	///<<
     if(bFindHome){//
@@ -604,7 +603,7 @@ class HomeSearch {
     return searchService.fetchDataByPages(hsSql,null,null,null,null,hsList,null,iMax,iOffset,'home.id',true,HomeSearch.class)
   }
 
-  def csiFindPopdirection(iPdi, iMax=Tools.getIntVal(ConfigurationHolder.config.popdirection.home_quantity,9)){
+  def csiFindPopdirection(iPdi, iMax=Tools.getIntVal(Holders.config.popdirection.home_quantity,9)){
     def hsSql = [select :"""*,
 						              0 AS user_picture, 0 AS user_name, 0 AS user_social,0 AS kol, 0 AS room, 0 AS hid, 0 as hotdiscount_id, 0 as longdiscount_id,
                           0 as hotdiscexpiredays, 0 as hotminrentdays, 0 as hotdiscount, 0 as longdiscexpiredays,
@@ -681,7 +680,7 @@ class HomeSearch {
                  from   :'home, user ',
                  where  :'home.client_id=user.client_id and is_am=1 and home.modstatus=1 and home.id in (:aIds)']
     hsList['aIds']=sIds
-    return searchService.fetchData(hsSql,null,null,null,hsList,HomeSearch.class,Tools.getIntVal(ConfigurationHolder.config.mainpage.last_home.max,4))
+    return searchService.fetchData(hsSql,null,null,null,hsList,HomeSearch.class,Tools.getIntVal(Holders.config.mainpage.last_home.max,4))
   }
   
   def csiGetAvgPriceByRoomTypeId(lCityId,iRoomTypeId){

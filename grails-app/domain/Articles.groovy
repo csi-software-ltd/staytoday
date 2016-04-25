@@ -1,9 +1,7 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class Articles {
   def searchService
 
-  static constraints = {
-  }
   static mapping = {
     tags lazy:false
     version false
@@ -57,7 +55,7 @@ class Articles {
     def tempResult = Tools.transliterate(sName)
     int i = 0
     if (tempResult.matches("[0-9-]+"))
-      tempResult = ((ConfigurationHolder.config.linkname.prefix)?ConfigurationHolder.config.linkname.prefix:"arenda_")+tempResult
+      tempResult = ((Holders.config.linkname.prefix)?Holders.config.linkname.prefix:"arenda_")+tempResult
     def result = tempResult
 
     while (Articles.findByLinknameAndIdNotEqual(result,lId)){

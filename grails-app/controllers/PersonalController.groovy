@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 
 import org.springframework.web.servlet.support.RequestContextUtils as RCU
@@ -25,9 +25,9 @@ class PersonalController {
   def init(hsRes){   
     //checkUser(hsRes)
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + hsTmp.client_id.toString()+'/'
-    hsTmp.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsTmp.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsTmp.imageurl = grailsApplication.config.urlphoto + hsTmp.client_id.toString()+'/'
+    hsTmp.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsTmp.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     
     hsTmp.user = User.read(hsRes.user?.id)
     
@@ -76,8 +76,8 @@ class PersonalController {
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
    
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto  
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -95,8 +95,8 @@ class PersonalController {
       hsRes.comments=oUcommentSearch.csiSelectUcommentsForMyHomes(hsRes.client_id?:0,2,1,requestService.getOffset())
     }
     def oMboxSearch=new MboxSearch()
-    hsRes.msg_unread=oMboxSearch.csiGetMbox(hsRes.user?.id,0,-1,Tools.getIntVal(ConfigurationHolder.config.pc.msg_unread_display.max,10),0,1)//TODO:paginate??
-    hsRes.sys_message = Note.findAllByUser_idAndModstatus(hsRes.user?.id,1,[sort:'inputdate',order:'desc',max:Tools.getIntVal(ConfigurationHolder.config.pc.sys_message_display.max,10)])
+    hsRes.msg_unread=oMboxSearch.csiGetMbox(hsRes.user?.id,0,-1,Tools.getIntVal(grailsApplication.config.pc.msg_unread_display.max,10),0,1)//TODO:paginate??
+    hsRes.sys_message = Note.findAllByUser_idAndModstatus(hsRes.user?.id,1,[sort:'inputdate',order:'desc',max:Tools.getIntVal(grailsApplication.config.pc.sys_message_display.max,10)])
 	
     requestService.setStatistic('pc')
     return hsRes	
@@ -616,8 +616,8 @@ class PersonalController {
     hsRes.id = requestService.getLongDef('id',0)
     hsRes.home_id = requestService.getLongDef('home_id',0)
 	hsRes.i = 1
-	hsRes.maxI = Tools.getIntVal(ConfigurationHolder.config.photomultiupload.max,4)
-    imageService.init(this,'homephotopic'+hsRes.id,'homephotokeeppic'+hsRes.id,ConfigurationHolder.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar) // 0
+	hsRes.maxI = Tools.getIntVal(grailsApplication.config.photomultiupload.max,4)
+    imageService.init(this,'homephotopic'+hsRes.id,'homephotokeeppic'+hsRes.id,grailsApplication.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar) // 0
     imageService.startFileSession() // 1
 	imageService.finalizeFileSession(null)
     if(hsRes.id>0){ 	  
@@ -654,7 +654,7 @@ class PersonalController {
     hsRes+=init(hsRes)
     def lId = requestService.getLongDef('id',0)
 
-    imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,ConfigurationHolder.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar) // 0
+    imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,grailsApplication.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar) // 0
 
     def hsPics
     def oHomephoto
@@ -662,7 +662,7 @@ class PersonalController {
 	def lHomeId = requestService.getLongDef('home_id',0)
 	def lsFiles = []
 
-	for (int i=1; i<=Tools.getIntVal(ConfigurationHolder.config.photomultiupload.max,4); i++){
+	for (int i=1; i<=Tools.getIntVal(grailsApplication.config.photomultiupload.max,4); i++){
 	  hsPics=imageService.getSessionPics(('file'+i))
 	  if (!hsPics)
 		continue
@@ -757,7 +757,7 @@ class PersonalController {
       if(oHomephoto&&Home.findWhere(client_id:hsRes.client_id,id:oHomephoto.home_id)){
         def tmpNorder = oHomephoto.norder
         def tmpHomephoto
-        imageService.init(this,'','',ConfigurationHolder.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar)    
+        imageService.init(this,'','',grailsApplication.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar)    
         def lsPictures = []      
         lsPictures<<oHomephoto.picture              	  
         oHomephoto.delete(flush:true)
@@ -789,22 +789,22 @@ class PersonalController {
 	}	
 	def hsData = [:]
 	hsData.data=[]
-	imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,ConfigurationHolder.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar,"images","alpha.jpg","mask.jpg") // 0
+	imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,grailsApplication.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar,"images","alpha.jpg","mask.jpg") // 0
 
 	if(bFlag){
 	  if(iNo==1){
 		request.multiFileMap?.file1?.each { file ->
-		  if (iNo<=Tools.getIntVal(ConfigurationHolder.config.photomultiupload.max,4)){
+		  if (iNo<=Tools.getIntVal(grailsApplication.config.photomultiupload.max,4)){
 			//ЗАГРУЖАЕМ ГРАФИКУ
 			hsData.data << imageService.loadMultiplePicture(
 				file,
-				Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-				Tools.getIntVal(ConfigurationHolder.config.photo.image.size,639),  // size
-				Tools.getIntVal(ConfigurationHolder.config.photo.thumb.size,100), //thumb size
+				Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+				Tools.getIntVal(grailsApplication.config.photo.image.size,639),  // size
+				Tools.getIntVal(grailsApplication.config.photo.thumb.size,100), //thumb size
 				true,//SaveThumb
 				false,//square		
-				Tools.getIntVal(ConfigurationHolder.config.photo.image.height,426),//height
-				Tools.getIntVal(ConfigurationHolder.config.photo.thumb.height,74),//thumb height			
+				Tools.getIntVal(grailsApplication.config.photo.image.height,426),//height
+				Tools.getIntVal(grailsApplication.config.photo.thumb.height,74),//thumb height			
 				false,
 				true,
 				iNo
@@ -815,13 +815,13 @@ class PersonalController {
 	  } else {
 		hsData.data << imageService.loadPicture(
 			"file"+(iNo?:1),
-			Tools.getIntVal(ConfigurationHolder.config.photo.weight,2097152), //weight
-			Tools.getIntVal(ConfigurationHolder.config.userphoto.image.size,210),  // size
-			Tools.getIntVal(ConfigurationHolder.config.userphoto.thumb.size,50), //thumb size
+			Tools.getIntVal(grailsApplication.config.photo.weight,2097152), //weight
+			Tools.getIntVal(grailsApplication.config.userphoto.image.size,210),  // size
+			Tools.getIntVal(grailsApplication.config.userphoto.thumb.size,50), //thumb size
 			true,//SaveThumb
 			false,//square		
-			Tools.getIntVal(ConfigurationHolder.config.userphoto.image.height,210),//height
-			Tools.getIntVal(ConfigurationHolder.config.userphoto.thumb.height,50),//thumb height			
+			Tools.getIntVal(grailsApplication.config.userphoto.image.height,210),//height
+			Tools.getIntVal(grailsApplication.config.userphoto.thumb.height,50),//thumb height			
 			true,
 			false
 		) // 3
@@ -846,7 +846,7 @@ class PersonalController {
     def lId = requestService.getLongDef('id',0)
 
     //ОБЯЗАТЕЛЬНАЯ ИНИЦИАЛИЗАЦИЯ TODO: path into cfg
-    imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,ConfigurationHolder.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar)
+    imageService.init(this,'homephotopic'+lId,'homephotokeeppic'+lId,grailsApplication.config.pathtophoto+hsRes.client_id.toString()+File.separatorChar)
     
     def sName=requestService.getStr("name")
 
@@ -1136,7 +1136,7 @@ class PersonalController {
     def lId = requestService.getLongDef('id',0)
     if(lId>0){
       def bSave = requestService.getLongDef('save',0)
-      hsRes.price_min=Tools.getIntVal(ConfigurationHolder.config.price_rub.min,300)
+      hsRes.price_min=Tools.getIntVal(grailsApplication.config.price_rub.min,300)
       hsRes+=getHome(hsRes.client_id,lId)
       if(!hsRes.home){
         response.sendError(404)
@@ -1295,7 +1295,7 @@ class PersonalController {
             oHome.priceweek_rub=(oHome.priceweek)?((iValutaId==iRubId)?oHome.priceweek:(Math.round(100*hsRates/hsDim*oHome.priceweek)/100).toInteger()):0
             oHome.pricemonth_rub=(oHome.pricemonth)?((iValutaId==iRubId)?oHome.pricemonth:(Math.round(100*hsRates/hsDim*oHome.pricemonth)/100).toInteger()):0
 
-            hsRes.price_min=Tools.getIntVal(ConfigurationHolder.config.price_rub.min,300)
+            hsRes.price_min=Tools.getIntVal(grailsApplication.config.price_rub.min,300)
 
             if(oHome.pricestandard_rub<hsRes.price_min)
               flash.error<<2
@@ -1427,7 +1427,7 @@ class PersonalController {
     def hsRes=requestService.getContextAndDictionary(false,true,true)
 	if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
-    hsRes.price_min=Tools.getIntVal(ConfigurationHolder.config.price_rub.min,300)
+    hsRes.price_min=Tools.getIntVal(grailsApplication.config.price_rub.min,300)
     def bSave = requestService.getLongDef('save',0)
     if(bSave){
       hsRes+=requestService.getParams([],['id','price','priceweekend','valuta_id'],['date_start','date_end'])	 
@@ -1578,7 +1578,7 @@ class PersonalController {
                 }  
                 oHomeprop.price_rub=(oHomeprop.price)?((iValutaId==iRubId)?oHomeprop.price:(Math.round(100*hsRates/hsDim*oHomeprop.price)/100).toInteger()):0	  			
                 oHomeprop.priceweekend_rub=(oHomeprop.priceweekend)?((iValutaId==iRubId)?oHomeprop.priceweekend:(Math.round(100*hsRates/hsDim*oHomeprop.priceweekend)/100).toInteger()):0			
-                hsRes.price_min=Tools.getIntVal(ConfigurationHolder.config.price_rub.min,300)
+                hsRes.price_min=Tools.getIntVal(grailsApplication.config.price_rub.min,300)
 			  
                 if(oHomeprop.price_rub<hsRes.price_min)
                   flash.error<<5
@@ -1755,7 +1755,7 @@ class PersonalController {
     def i = 0
     for (ev in event) {
       if (ev.className=='active')
-        ev.title = message(code:'home.eventHome.active.title', args:[(ev.title?:''), valutaSym.decodeHTML()], default:'')
+        ev.title = message(code:'home.eventHome.active.title', args:[(ev.title?:''), valutaSym], default:'').decodeHTML()
       else if (ev.className=='notavailable')
         ev.title = message(code:'home.eventHome.notavailable.title', args:[(ev.title?:'')], default:'')
       else if (ev.className=='reserved'&&hsRes.inrequest.pc)
@@ -1778,7 +1778,7 @@ class PersonalController {
     def end = requestService.getLongDef('end',0)
     def title = requestService.getStr('title')
 
-    def stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    def stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     if ((title?:'').size()>stringlimit) title = title.substring(0, stringlimit)
 
     def hmp = new Homeprop()
@@ -2190,11 +2190,11 @@ class PersonalController {
 
     hsRes.inrequest=[:]
     hsRes.inrequest.modstatus = requestService.getIntDef('modstatus',0)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.homeperson=Homeperson.list()    
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -2297,8 +2297,8 @@ class PersonalController {
     hsRes+=findClientId(hsRes)
 
     hsRes.inrequest=[:]
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -2338,8 +2338,8 @@ class PersonalController {
     hsRes+=init(hsRes)
     hsRes+=findClientId(hsRes)
 
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.country=Country.list()
     hsRes.region=Region.list()
     hsRes.homeperson=Homeperson.list()
@@ -2349,7 +2349,7 @@ class PersonalController {
     def oZayavka = new ZayavkaSearch()
     hsRes.data=oZayavka.csiSelectZayavka2client(hsRes.user.client_id?:0,20,requestService.getOffset())
     hsRes.userHomes=Home.findAll('FROM Home WHERE client_id=:client_id and modstatus=1 ORDER BY name',[client_id:hsRes.client_id])
-    hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+    hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
 
     return hsRes
   }
@@ -2421,7 +2421,7 @@ class PersonalController {
       response.sendError(404)
       return
     }
-    hsRes.imageurl = ConfigurationHolder.config.urlphoto + hsRes.client_id.toString()+'/'
+    hsRes.imageurl = grailsApplication.config.urlphoto + hsRes.client_id.toString()+'/'
     hsRes.inrequest = hsRes.home
     hsRes.hcity = City.get(hsRes.home.city_id?:0)
 

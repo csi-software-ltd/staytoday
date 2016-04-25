@@ -1,5 +1,6 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 class ZayavkaService {
+  def grailsApplication
   static transactional = false
 	
   def csiFindClient(oZayavka,lsExcludeIds=[]){
@@ -33,7 +34,7 @@ class ZayavkaService {
 	//>>3 
 	if(hsRes.clientIds.size())
 	  hsFilter.exclude_ids=hsRes.clientIds
-	hsFilter.price_max+=(hsFilter?.price_max*Tools.getIntVal(ConfigurationHolder.config.zayvka.price_max.persent,0.5)).toLong()          		  
+	hsFilter.price_max+=(hsFilter?.price_max*Tools.getIntVal(grailsApplication.config.zayvka.price_max.persent,0.5)).toLong()          		  
     def hsResThird=oHomeSearch.csiFindByCity(sCity,0,hsFilter)		  
 	  //log.debug('3. client_ids:='+hsResThird.clientIds)
 	  //log.debug('3. records:='+hsResThird.records)

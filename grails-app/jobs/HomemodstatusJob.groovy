@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class HomemodstatusJob {
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.modstatus.cron!=[:])?ConfigurationHolder.config.modstatus.cron:"0 15 0 * * ?")
+		cron cronExpression: ((Holders.config.modstatus.cron!=[:])?Holders.config.modstatus.cron:"0 15 0 * * ?")
 	}
 
 	def execute() {

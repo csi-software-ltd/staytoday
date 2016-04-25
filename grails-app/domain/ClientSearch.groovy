@@ -11,6 +11,7 @@ class ClientSearch {
   String name
   Integer resstatus
   Integer country_id
+  Integer partnerstatus
   Integer type_id
 
   String nickname
@@ -18,7 +19,7 @@ class ClientSearch {
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  def csiSelectClients(lId,iCountry_id,iResstatus,sNickname,sName,iTypeId,iMax,iOffset){
+  def csiSelectClients(lId,iCountry_id,iResstatus,sNickname,sName,iTypeId,iPartnerStatus,iMax,iOffset){
     def hsSql=[select:'',from:'',where:'',order:''] 
     def hsLong=[:]
     def hsString=[:]
@@ -31,7 +32,8 @@ class ClientSearch {
         ((iTypeId>0)?' AND client.type_id =:type_id':'')+
         ((sName!='')?' AND (client.name like CONCAT("%",:client_name) OR client.name like CONCAT(:client_name,"%") OR client.name like CONCAT("%",:client_name,"%"))':'')+
         ((sNickname!='')?' AND (user.nickname like CONCAT("%",:nickname) OR user.nickname like CONCAT(:nickname,"%") OR user.nickname like CONCAT("%",:nickname,"%"))':'')+
-        ((iResstatus==-2)?' AND (client.resstatus = 2 or client.resstatus = 3)':(iResstatus>-2)?' AND client.resstatus =:resstatus':'')
+        ((iResstatus==-2)?' AND (client.resstatus = 2 or client.resstatus = 3)':(iResstatus>-2)?' AND client.resstatus =:resstatus':'')+
+        (iPartnerStatus>-100?' AND client.partnerstatus =:partnerstatus':'')
     hsSql.order="client.inputdate DESC"
 
     if(lId>0)
@@ -46,6 +48,8 @@ class ClientSearch {
       hsString['nickname']=sNickname
     if(iResstatus>-2)
       hsLong['resstatus']=iResstatus
+    if(iPartnerStatus>-2)
+      hsLong['partnerstatus']=iPartnerStatus
 
     def hsRes=searchService.fetchDataByPages(hsSql,null,hsLong,null,hsString,
       null,null,iMax,iOffset,'client.id',true,ClientSearch.class)

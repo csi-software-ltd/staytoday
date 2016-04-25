@@ -105,6 +105,11 @@ class Account {
     return save(failOnError:true)
   }
 
+  def doConfirmationPayment(_summa){
+    summa_com += _summa
+    return save(failOnError:true)
+  }
+
   def csiSelectAccount(sCode,iModstatus,lClientId,iMax,iOffset){
     def hsSql=[select:'',from:'',where:'',order:'']
     def hsInt=[:]

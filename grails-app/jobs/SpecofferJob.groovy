@@ -1,13 +1,12 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class SpecofferJob {
   static triggers = {
     //simple repeatInterval: 250000 // execute job once in 250 seconds
-    cron cronExpression: ((ConfigurationHolder.config.specoffer.cron!=[:])?ConfigurationHolder.config.specoffer.cron:"0 0 5 * * ?")
+    cron cronExpression: ((Holders.config.specoffer.cron!=[:])?Holders.config.specoffer.cron:"0 0 5 * * ?")
   }
 
   def execute() {
-    if(Tools.getIntVal(ConfigurationHolder.config.is_use_autoSpecoffer,1)){
+    if(Tools.getIntVal(Holders.config.is_use_autoSpecoffer,1)){
       log.debug("LOG>> SpecofferJob: start")
       for(home in Home.findAllByIs_specoffer_auto(1)) {
         try {

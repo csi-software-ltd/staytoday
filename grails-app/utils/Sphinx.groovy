@@ -1,5 +1,5 @@
 import groovy.sql.Sql
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 import org.sphx.api.*
 
 class Sphinx {
@@ -37,10 +37,10 @@ class Sphinx {
 	}
 	if((sName?:'').size()>0 || isNosName){	//for mobile flag
 	  SphinxClient cl = new SphinxClient();		
-	  cl.SetServer (ConfigurationHolder.config.sphinx.server,Tools.getIntVal(ConfigurationHolder.config.sphinx.port));		
+	  cl.SetServer (Holders.config.sphinx.server,Tools.getIntVal(Holders.config.sphinx.port));		
 	  //cl.SetWeights (100, 1);
 	  cl.SetMatchMode (SphinxClient.SPH_MATCH_EXTENDED2);
-	  cl.SetLimits (((iOffset?:0)>0)?iOffset:0,((iMax?:0)>0)?iMax:Tools.getIntVal(ConfigurationHolder.config.sphinx.limit), Tools.getIntVal(ConfigurationHolder.config.sphinx.limit));	  
+	  cl.SetLimits (((iOffset?:0)>0)?iOffset:0,((iMax?:0)>0)?iMax:Tools.getIntVal(Holders.config.sphinx.limit), Tools.getIntVal(Holders.config.sphinx.limit));	  
 	
 	  if(hsMainFilter?.date_start!=null){  	  
 	    try{ 
@@ -61,8 +61,8 @@ class Sphinx {
           date_start_days=(hsMainFilter?.date_start - dateFrom).days
         }
         if(hsFilter?.date_start_change){//city>>		  
-          cl.SetFilterRange('date_end_df',date_start_days+1-Tools.getIntVal(ConfigurationHolder.config.zayvka.days_range,7),MAX_DATE_DAYS,false)		  
-		      cl.SetFilterRange('date_start_df',MIN_DATE_DAYS,date_start_days+1+Tools.getIntVal(ConfigurationHolder.config.zayvka.days_range,7),false)
+          cl.SetFilterRange('date_end_df',date_start_days+1-Tools.getIntVal(Holders.config.zayvka.days_range,7),MAX_DATE_DAYS,false)		  
+		      cl.SetFilterRange('date_start_df',MIN_DATE_DAYS,date_start_days+1+Tools.getIntVal(Holders.config.zayvka.days_range,7),false)
 		    }else{//city<<
           cl.SetFilterRange('date_end_df',date_start_days+1,MAX_DATE_DAYS,false)		  
 		      cl.SetFilterRange('date_start_df',MIN_DATE_DAYS,date_start_days+1,false)		
@@ -430,9 +430,9 @@ class Sphinx {
 		}
 		if (sName) {
 			SphinxClient cl = new SphinxClient();
-			cl.SetServer (ConfigurationHolder.config.sphinx.server,Tools.getIntVal(ConfigurationHolder.config.sphinx.port));
+			cl.SetServer (Holders.config.sphinx.server,Tools.getIntVal(Holders.config.sphinx.port));
 			cl.SetMatchMode (SphinxClient.SPH_MATCH_EXTENDED2);
-			cl.SetLimits (0,1,Tools.getIntVal(ConfigurationHolder.config.sphinx.limit));
+			cl.SetLimits (0,1,Tools.getIntVal(Holders.config.sphinx.limit));
 			try{
 				SphinxResult res = cl.Query(q.toString(), 'arenda_city');
 				hsResult.totalFound=res.totalFound

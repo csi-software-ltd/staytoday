@@ -38,7 +38,7 @@ class SecurityFilters {
 
             }
         }
-        notdomain(controller: 'home|user|jcaptcha|error|m', invert: true){
+        notdomain(controller: 'home|user|jcaptcha|error|m|correction', invert: true){
             before = {
                 if(!(request.serverName.indexOf('.staytoday')==-1)&&!(actionName in ['changeLang','changeValuta','selectpopcities','clickbanner','robots'])&&!actionName.startsWith('sitemap')){
                     response.sendError(404)

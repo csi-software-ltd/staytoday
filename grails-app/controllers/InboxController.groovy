@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class InboxController {  
   def requestService
@@ -29,9 +29,9 @@ class InboxController {
   }
   def init(hsRes){   
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + hsTmp.client_id.toString()+'/'
-    hsTmp.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-    hsTmp.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+    hsTmp.imageurl = grailsApplication.config.urlphoto + hsTmp.client_id.toString()+'/'
+    hsTmp.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+    hsTmp.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 
     hsTmp.user = User.read(hsRes.user?.id)
     
@@ -54,7 +54,7 @@ class InboxController {
   def index ={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/inbox',base:hsRes.context?.mobileURL_lang,permanent:true)    
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
@@ -103,8 +103,8 @@ class InboxController {
     hsRes+=init(hsRes)
 
     //hsRes.user = User.get(hsRes.user.id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes+=requestService.getParams(['modstatus','ord'],['client'])
     hsRes.data=[records:[],count:0]
     hsRes.reminder=[:]  
@@ -115,7 +115,7 @@ class InboxController {
       def today = new Date()
       for(def i=0; i<hsRes.data.records.size();i++){
         use(groovy.time.TimeCategory){
-          def duration = hsRes.data.records[i].moddate + Tools.getIntVal(ConfigurationHolder.config.mbox.answertime.hours,4).hours - today
+          def duration = hsRes.data.records[i].moddate + Tools.getIntVal(grailsApplication.config.mbox.answertime.hours,4).hours - today
           def days = duration.days
           def hours = duration.hours
           def minutes = duration.minutes
@@ -227,12 +227,12 @@ class InboxController {
     def lId=requestService.getLongDef('id',0)	
     hsRes.msg = Mbox.get(lId)
 
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/mbox?id='+hsRes.msg?.id,base:hsRes.context?.mobileURL_lang,permanent:true)
 
     //hsRes.user = User.get(hsRes.user.id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.howto=Howto.findAllByPageAndType_id('inbox',1,[sort:'number',order:'asc'])
     if (!checkAccess(hsRes)) return
     
@@ -269,14 +269,14 @@ class InboxController {
       hsRes.answergroup=Answergroup.list()
       hsRes.answertype=Answertype.list()
       hsRes.modstatus=Mboxmodstatus.list()
-      hsRes.isHideContact=Tools.getIntVal(ConfigurationHolder.config.mbox.hideContactMode,1)?true:false
+      hsRes.isHideContact=Tools.getIntVal(grailsApplication.config.mbox.hideContactMode,1)?true:false
       hsRes.payway=Payway.findAllByModstatusAndIs_invoice(1,0)
       hsRes.iscanoffer = Mboxrec.findAllByMbox_idAndIs_answerAndAnswertype_idInList(hsRes.msg?.id?:0,1,[1,2])?false:true
       hsRes.iscandecline = Mboxrec.findAllByMbox_idAndIs_answerAndAnswertype_idGreaterThanAndAdmin_id(hsRes.msg?.id?:0,1,0,0)?false:true
 
       def today = new Date()
       use(groovy.time.TimeCategory){
-        def duration = hsRes.msg.moddate + Tools.getIntVal(ConfigurationHolder.config.mbox.answertime.hours,4).hours - today
+        def duration = hsRes.msg.moddate + Tools.getIntVal(grailsApplication.config.mbox.answertime.hours,4).hours - today
         def days = duration.days
         def hours = duration.hours
         def minutes = duration.minutes
@@ -307,7 +307,7 @@ class InboxController {
       hsRes.ispaypossible = (Client.get(hsRes.msg.homeowner_cl_id)?.resstatus==1)
       hsRes.resstatModifier = 1.0
       if (hsRes.ispaypossible) {
-        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
       }
       hsRes.displayPrice = Math.round(hsRes.msg?.price_rub * hsRes.resstatModifier / hsRes.valutaRates)      
       hsRes.reserve = Reserve.get(hsRes.ownerClient?.reserve_id?:0)
@@ -328,7 +328,7 @@ class InboxController {
     hsRes.sender=hsRes.recipient=[]
 
     //hsRes.user = User.get(hsRes.user.id)
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
 
     def lId=requestService.getLongDef('id',0)
     hsRes.msg = Mbox.get(lId)
@@ -392,7 +392,7 @@ class InboxController {
       hsRes.ispaypossible = (Client.get(hsRes.msg.homeowner_cl_id)?.resstatus==1)
       hsRes.resstatModifier = 1.0
       if (hsRes.ispaypossible) {
-        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
       }      
       hsRes.reserve = Reserve.get(hsRes.ownerClient?.reserve_id?:0)
       if(hsRes.ispaypossible && hsRes.reserve)
@@ -502,6 +502,10 @@ class InboxController {
       if(!ownerClient.is_offeradmit&&hsRes.inrequest.answertype_id in 1..2&&!hsRes.inrequest."confirmdogovor_$hsRes.inrequest.answertype_id"){
         hsRes.error = true
         hsRes.errorprop = "inbox.bron.error.nooferta"
+      }
+      if (!hsRes.error&&hsRes.inrequest.answertype_id==2&&hsRes.inrequest.price<=0) {
+        hsRes.error = true
+        hsRes.errorprop = "home.calculateHomePrice.price.errorprop"
       }
       def hsOut=[:]
       hsOut.error=hsRes.error
@@ -648,7 +652,7 @@ class InboxController {
 
     hsRes.mbox=Mbox.findByIdAndUser_idInList(lMboxId,[lSocId,hsRes.user.id])
     hsRes.mboxRec=Mboxrec.findWhere(id:lId,mbox_id:hsRes.mbox?.id)
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     if(hsRes.mboxRec){
       hsRes.homeperson=Homeperson.get(hsRes.mboxRec?.homeperson_id)
       hsRes.home=Home.read(hsRes.mboxRec?.home_id)
@@ -665,9 +669,9 @@ class InboxController {
       hsRes.ownerClient = Client.get(hsRes.mbox.homeowner_cl_id)
       hsRes.resstatModifier = 1.0
       hsRes.ispaypossible = (hsRes.ownerClient?.resstatus==1)
-      hsRes.invoicelife = Tools.getIntVal(ConfigurationHolder.config.payorder.invoicelife.days,5)
+      hsRes.invoicelife = Tools.getIntVal(grailsApplication.config.payorder.invoicelife.days,5)
       if (hsRes.ispaypossible) {
-        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+        hsRes.resstatModifier = hsRes.resstatModifier + (Tools.getIntVal(grailsApplication.config.clientPrice.modifier,4) / 100)
       }
       hsRes.displayPrice = Math.round(hsRes.mboxRec.price_rub / hsRes.valutaRates * hsRes.resstatModifier)
       hsRes.payway = Payway.findAllByModstatus(1)
@@ -723,7 +727,7 @@ class InboxController {
           hsRes.error = 2
         }
         def oPayway = Payway.get(hsRes.inrequest.payway)
-        if (oPayway?.is_invoice&&(oMbox.date_start - new Date() < Tools.getIntVal(ConfigurationHolder.config.payorder.invoicelife.days,5))) {
+        if (oPayway?.is_invoice&&(oMbox.date_start - new Date() < Tools.getIntVal(grailsApplication.config.payorder.invoicelife.days,5))) {
           hsRes.error = 4
         }
         /*if (oPayway?.is_invoice&&(Client.get(oMbox.homeowner_cl_id)?.reserve_id in 3..4)) {
@@ -742,6 +746,8 @@ class InboxController {
               hsRes.where = createLink(controller:'account',action: 'payU',id:(billingService.createOrderFromMbox(oMbox,hsRes.inrequest+[userip:request.remoteAddr])?.norder?:''),absolute:true)
             } else if(oPayway.agr_id==5) {
               hsRes.where = createLink(controller:'account',action: 'wmoney',id:(billingService.createOrderFromMbox(oMbox,hsRes.inrequest+[userip:request.remoteAddr])?.norder?:''),absolute:true)
+            } else if(oPayway.agr_id==6) {
+              hsRes.where = createLink(controller:'account',action: 'paypal',id:(billingService.createOrderFromMbox(oMbox,hsRes.inrequest+[userip:request.remoteAddr])?.norder?:''),absolute:true)
             } else {
               billingService.createOrderFromMbox(oMbox,hsRes.inrequest)
               hsRes.where = createLink(controller:'account',action: 'index',absolute:true)
@@ -798,7 +804,7 @@ class InboxController {
         return
       }
     }
-    def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+    def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
     if (sComments.size()>stringlimit) sComments = sComments.substring(0, stringlimit)
 
     if(oTrip.payorder_id) {
@@ -908,7 +914,7 @@ class InboxController {
     def oValutarate = new Valutarate()
     def valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     
-    def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+    def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
     if (sComments.size()>stringlimit) 
       sComments = sComments.substring(0, stringlimit)
     

@@ -1,11 +1,9 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class Home {
   def searchService
   def ratingService
 
-  static mapping = {
-    version false
-  }
+  static mapping = { version false }
 
   static constraints = {
 		linkname(unique:true)
@@ -198,6 +196,7 @@ class Home {
   Integer is_step_price
   Integer nref
   Integer popdirection_id
+  Integer unrealiable = 0
 /////////////////////////////////constructor//////////////////////////////////////////////////////////////////////
   Home(){}
   Home(oRequest,lId){
@@ -305,6 +304,7 @@ class Home {
     is_renthour = 0
 		nref = 0
 		popdirection_id = 0
+		unrealiable = 0
 		//set price>>
 		is_pricebyday = 0
 		valuta_id = oRequest.valuta_id
@@ -338,12 +338,23 @@ class Home {
       hsLong['iClientId']=iClientId	
     return searchService.fetchDataByPages(hsSql,null,hsLong,null,null,null,null,iMax,iOffset,'id',true, Home.class,null)	  
   }
+
+  def csiGetPartnerHome() {
+    def hsSql=[select:'',from:'',where:'',order:'']
+
+    hsSql.select="*"
+    hsSql.from="home join client on (client.id=home.client_id)"
+    hsSql.where="home.modstatus=1 and home.region_id in (77,78,42,24,66,54,23,2,257,52,56,64,16,117,115,165) and client.partnerstatus=2"
+    hsSql.order="home.id asc"
+
+    searchService.fetchData(hsSql,null,null,null,null,Home.class)
+  }
 //owner Dmitry>>
   def csiGetUniqueLinkname(sName,lId=0){
 		def tempResult = Tools.transliterate(sName)
 		int i = 0
 		if (tempResult.matches("[0-9-]+"))
-			tempResult = ((ConfigurationHolder.config.linkname.prefix)?ConfigurationHolder.config.linkname.prefix:"arenda_")+tempResult
+			tempResult = ((Holders.config.linkname.prefix)?Holders.config.linkname.prefix:"arenda_")+tempResult
 		def result = tempResult
 
 		while (Home.findByLinknameAndIdNotEqual(result,lId)){
@@ -432,7 +443,7 @@ class Home {
 		def discountModifier = hsRes.home.csiGetDiscountModifier(hsRes.home,start,end,date1)
 		def resstatModifier = 1.0
 		if (Client.get(hsRes.home.client_id)?.resstatus==1&&bUseModifier) {
-			resstatModifier = resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+			resstatModifier = resstatModifier + (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100)
 		}
 		if (!tmpHomeprop) {
 			if (hsRes.home.pricestatus==1) {
@@ -731,7 +742,7 @@ class Home {
 		hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
 		def resstatModifier = 1.0
 		if (Client.get(hsRes.home.client_id)?.resstatus==1) {
-			resstatModifier = resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+			resstatModifier = resstatModifier + (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100)
 		}
 		if(!tmpHomeprop){
 			if (hsRes.home.pricestatus==1) {
@@ -1159,16 +1170,10 @@ class Home {
   }
 
   def csiGetSomePrice(){
-    def today= new GregorianCalendar()
-    today.setTime(new Date())
-    today.set(Calendar.HOUR_OF_DAY ,0)
-    today.set(Calendar.MINUTE ,0)
-    today.set(Calendar.SECOND,0)
-    today.set(Calendar.MILLISECOND,0)
-    def tmpPrice = Homeprop.findAll("FROM Homeprop WHERE date_end>=:date_start_query AND home_id=:home_id AND modstatus=1 AND term>0 ORDER BY date_start",[date_start_query:today.getTime(),home_id:id])
+    def tmpPrice = Homeprop.findAll("FROM Homeprop WHERE date_end>=:date_start_query AND home_id=:home_id AND modstatus=1 AND term>0 ORDER BY date_start",[date_start_query:new Date().clearTime(),home_id:id])
 		def resstatModifier = 1.0
 		if (Client.get(client_id)?.resstatus==1) {
-			resstatModifier = resstatModifier + (Tools.getIntVal(ConfigurationHolder.config.clientPrice.modifier,4) / 100)
+			resstatModifier = resstatModifier + (Tools.getIntVal(Holders.config.clientPrice.modifier,4) / 100)
 		}
     if(tmpPrice.size()>0)
     	return Math.rint(tmpPrice[0].price*resstatModifier)
@@ -1191,5 +1196,9 @@ class Home {
     oHomeTmp.district=Tools.transliterate(oHomeTmp.district,0)
     oHomeTmp.homenumber=Tools.transliterate(oHomeTmp.homenumber,0)
     return oHomeTmp
+  }
+  Home csiSetUnrealiable (iStatus){
+  	unrealiable = iStatus?:0
+  	this
   }
 }

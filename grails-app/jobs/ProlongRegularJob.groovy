@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class ProlongRegularJob {
 	static triggers = {
 		//simple repeatInterval: 150000 // execute job once in 150 seconds
-		cron cronExpression: ((ConfigurationHolder.config.prolongRegular.cron!=[:])?ConfigurationHolder.config.prolongRegular.cron:"0 0 3 1,15 * ?")
+		cron cronExpression: ((Holders.config.prolongRegular.cron!=[:])?Holders.config.prolongRegular.cron:"0 0 3 1,15 * ?")
 	}
 
 	def execute() {

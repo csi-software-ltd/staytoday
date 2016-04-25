@@ -6,7 +6,8 @@ class UrlMappings {
 				// apply constraints here
 			}
 		}    
-    
+    "/favicon.ico"(uri:"/favicon.ico")
+
     name en: "/en/$controller/$action?/$id?" {      
       controller = { (request.requestURI - request.contextPath).split('/')[2]}
       action = {(request.requestURI - request.contextPath).split('/')[3]}       
@@ -74,78 +75,81 @@ class UrlMappings {
 			controller = "index"
 			action = "popdirectionAll"
 			constraints {
-				id(validator:{return Country.findByUrlname(it)?true:false})
+				id(validator:{ def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/$id" {
 			controller = "index"
 			action = "popdirectionAll"
 			constraints {
-				id(validator:{return Country.findByUrlname(it)?true:false})
+				id(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/$country/$id" {
 			controller = "index"
 			action = "direction"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
     "/en/$country/$id" {
 			controller = "index"
 			action = "direction"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
 		"/$country/$id/discounts" {
 			controller = "index"
 			action = "popdiscounts"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
     "/en/$country/$id/discounts" {
 			controller = "index"
 			action = "popdiscounts"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
 		"/$country/$id/cottages" {
 			controller = "index"
 			action = "cottages"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
     "/en/$country/$id/cottages" {
 			controller = "index"
 			action = "cottages"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				id(validator:{return Popdirection.findByLinkname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				id(validator:{def t = true; def item = it; Popdirection.withNewSession{ t = Popdirection.findByLinkname(item)?true:false}; return t})
 			}
 		}
 		name hSearchTypeDomain: "/type_$type_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url=='all'?0:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item)}; t?.id?:params.type_url=='all'?0:params.type_url }
 		}
     name hSearchTypeDomain_en: "/en/type_$type_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url=='all'?0:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item)}; t?.id?:params.type_url=='all'?0:params.type_url }
+			constraints {
+				type_url(validator:{ return true })
+			}
 		}
 		name hSearchRoomDomain: "/type_$type_url/room_$bedroom"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
 				type_url(validator:{return it=='flats'})
 			}
@@ -153,7 +157,7 @@ class UrlMappings {
     name hSearchRoomDomain_en: "/en/type_$type_url/room_$bedroom"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
 				type_url(validator:{return it=='flats'})
 			}
@@ -161,39 +165,47 @@ class UrlMappings {
 		name hSearchMetroDomain: "/metro_$metro_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 		}
     name hSearchMetroDomain_en: "/en/metro_$metro_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
+			constraints {
+				metro_url(validator:{ return true })
+			}
 		}
    	name hSearchCitysightDomain: "/sight_$citysight_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			citysight_id = { Citysight.findWhere(city_id:City.findByDomain(request.serverName)?.id?:0,urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:(City.findByDomain(request.serverName)?.id?:0),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
 		}
     name hSearchCitysightDomain_en: "/en/sight_$citysight_url"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "list"
-			citysight_id = { Citysight.findWhere(city_id:City.findByDomain(request.serverName)?.id?:0,urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:(City.findByDomain(request.serverName)?.id?:0),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
+			constraints {
+				citysight_url(validator:{ return true })
+			}
 		}
 		name hViewDomain: "/home_$linkname"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "detail"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; def item = params.linkname; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
 		}
     name hViewDomain_en: "/en/home_$linkname"{
 			controller = { request.serverName.indexOf('.staytoday')==-1?false:'home' }
 			action = "detail"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; def item = params.linkname; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
+			constraints {
+				linkname(validator:{ return true })
+			}
 		}
 		"/alldirections"(controller : "index", action:"popdirectionAll")
     "/en/alldirections"(controller : "index", action:"popdirectionAll")
 		"/$id"(controller : "index", action:"popdirection")
     "/en/$id"(controller : "index", action:"popdirection")
 		//"/robots.txt"(uri : "/robots.txt")
-    "/favicon.ico"(uri:"/favicon.ico")
 		"/robots.txt"(controller:'index',action:'robots')
 		"/sitemap_main"(uri:"/sitemap_main.xml")
 		"/sitemap_home.xml"(uri:'sitemap_home')
@@ -253,250 +265,266 @@ class UrlMappings {
 		name hView: "/$country/$city/home_$linkname"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "detail"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
 		}
     
     name hView_en: "/en/$country/$city/home_$linkname"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "detail"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
 		}
 		"/home/view/$linkname" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "view"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
 		}
 		"/en/home/view/$linkname" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "view"
-			id = { Home.findByLinkname(params.linkname)?.id?:params.linkname }
+			id = { def t; Home.withNewSession{ t = Home.findByLinkname(params.linkname)}; t?.id?:params.linkname }
 		}
 		name cSearchType: "/cities/$where/type_$type_url" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
     name cSearchType_en: "/en/cities/$where/type_$type_url" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
 		name cSearchRoom: "/cities/$where/type_$type_url/room_$bedroom" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
     name cSearchRoom_en: "/en/cities/$where/type_$type_url/room_$bedroom" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
 		"/cities/$where/metro_$metro_url" {
 			controller = "home"
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
     "/en/cities/$where/metro_$metro_url" {
 			controller = "home"
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
 		"/cities/$where" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			constraints {         
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+			constraints {
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
     "/en/cities/$where" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
 			constraints {         
-				where(validator:{return City.findByName_en(it.decodeURL())?false:(City.findByName(it.decodeURL())?false:true)})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?false:(City.findByName_en(item.decodeURL())?false:true))}; return t})
 			}
 		}
 		name hSearchType: "/$country/$where/type_$type_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?true:false)}; return t})
 			}
 		}
     name hSearchType_en: "/en/$country/$where/type_$type_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName_en(item.decodeURL())?true:false)}; return t})
 			}
 		}
 		name hSearchRoom: "/$country/$where/type_$type_url/room_$bedroom"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?true:false)}; return t})
 				type_url(validator:{return it=='flats'})
 			}
 		}
     name hSearchRoom_en: "/en/$country/$where/type_$type_url/room_$bedroom"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName_en(item.decodeURL())?true:false)}; return t})
 				type_url(validator:{return it=='flats'})
 			}
 		}
 		name hSearchMetro: "/$country/$where/metro_$metro_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?true:false)}; return t})
 			}
 		}
     name hSearchMetro_en: "/en/$country/$where/metro_$metro_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName_en(item.decodeURL())?true:false)}; return t})
 			}
 		}
    	name hSearchCitysight: "/$country/$where/sight_$citysight_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			citysight_id = { Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:((City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0)),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?true:false)}; return t})
 			}
 		}
     name hSearchCitysight_en: "/en/$country/$where/sight_$citysight_url"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "list"
-			citysight_id = { Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return City.findByName_en(it.decodeURL())?true:(City.findByName(it.decodeURL())?true:false)})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName_en(item.decodeURL())?true:false)}; return t})
 			}
 		}
 		name hSearch: "/$country/$where"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }	
       action = { params?.hometype_id?'s':'list' }      
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return (City.findByName(it.decodeURL())?true:(City.findByName_en(it.decodeURL())?true:false))})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName(item.decodeURL())?true:false)}; return t})
 			}
 		}
     name hSearch_en: "/en/$country/$where"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }	
 			action = { params?.hometype_id?'s':'list' }   
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
-				where(validator:{return (City.findByName(it.decodeURL())?true:(City.findByName_en(it.decodeURL())?true:false))})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				where(validator:{def t = true; def item = it; City.withNewSession{ t = (City.findByName_en(item.decodeURL())?true:false)}; return t})
 			}
 		}
 		"/$country/$where/type_$type_url"{
 			controller = "home"
 			action = "s"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
     "/en/$country/$where/type_$type_url"{
 			controller = "home"
 			action = "s"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/$country/$where/metro_$metro_url"{
 			controller = "home"
 			action = "s"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
     "/en/$country/$where/metro_$metro_url"{
 			controller = "home"
 			action = "s"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/$country/$where/sight_$citysight_url"{
 			controller = "home"
 			action = "s"
-			citysight_id = { Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
     "/en/$country/$where/sight_$citysight_url"{
 			controller = "home"
 			action = "s"
-			citysight_id = { Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)?.id?:params.citysight_url }
+			citysight_id = { def t; Citysight.withNewSession{ t = Citysight.findWhere(city_id:(City.findByName_en(params.where.decodeURL())?.id?:0)?:(City.findByName(params.where.decodeURL())?.id?:0),urlname:params.citysight_url)}; t?.id?:params.citysight_url }
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/$country/$where/room_$bedroom"{
 			controller = "home"
 			action = "s"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
     "/en/$country/$where/room_$bedroom"{
 			controller = "home"
 			action = "s"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+			}
+		}
+    "/$country/$where/type_$type_url/room_$bedroom"{
+			controller = "home"
+			action = "s"
+			constraints {
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				type_url(validator:{return it=='flats'})
+			}
+		}
+    "/en/$country/$where/type_$type_url/room_$bedroom"{
+			controller = "home"
+			action = "s"
+			constraints {
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
+				type_url(validator:{return it=='flats'})
 			}
 		}
 		"/$country/$where"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "s"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
     "/en/$country/$where"{
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':'home' }
 			action = "s"
 			constraints {
-				country(validator:{return Country.findByUrlname(it)?true:false})
+				country(validator:{def t = true; def item = it; Country.withNewSession{ t = Country.findByUrlname(item)?true:false; }; return t})
 			}
 		}
 		"/cities/$where/room_$bedroom" {
@@ -510,22 +538,22 @@ class UrlMappings {
 		"/cities/$where/type_$type_url" {
 			controller = "home"
 			action = "s"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 		}
     "/en/cities/$where/type_$type_url" {
 			controller = "home"
 			action = "s"
-			hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+			hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
 		}
 		"/cities/$where/metro_$metro_url" {
 			controller = "home"
 			action = "s"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 		}
     "/en/cities/$where/metro_$metro_url" {
 			controller = "home"
 			action = "s"
-			metro_id = { Metro.findByUrlname(params.metro_url)?.id?:params.metro_url }
+			metro_id = { def t; def item = params.metro_url; Metro.withNewSession{ t = Metro.findByUrlname(item)}; t?.id?:params.metro_url }
 		}
 		"/cities/$where" {
 			controller = "home"
@@ -545,13 +573,13 @@ class UrlMappings {
 		}
 		name near: "/near/type_$type_url" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':false }
-      hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+      hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
       is_near = 1
 			action = "list"
 		}
     name near_en:  "/en/near/type_$type_url" {
 			controller = { request.serverName.indexOf('m.staytoday')==0?'m':false }
-      hometype_id = { Hometype.findByUrlname(params.type_url)?.id?:params.type_url }
+      hometype_id = { def t; def item = params.type_url; Hometype.withNewSession{ t = Hometype.findByUrlname(item) }; t?.id?:params.type_url }
       is_near = 1
 			action = "list"
 		}
@@ -625,10 +653,9 @@ class UrlMappings {
     "/en/bron/$id?"(controller:"m", action:"bron")
     "/inbox"(controller:"m", action:"inbox")
     "/en/inbox"(controller:"m", action:"inbox")        
-    
+
     "404"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_404")
-		"403"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_404")    
-    "401"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_401")    
-    "500"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_500")		
+    "401"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_401")
+    "500"(controller:{request.serverName.indexOf('m.staytoday')==0?"m":"error"}, action:"page_500")
 	}
 }

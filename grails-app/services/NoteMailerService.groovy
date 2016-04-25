@@ -1,7 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 
 class NoteMailerService {
   def mailerService
+  def grailsApplication
 	boolean transactional = true
 
 	synchronized noteMailer(){
@@ -20,12 +21,12 @@ class NoteMailerService {
 							.replace('[@USER]',User.get(nE.user_id?:0.toLong())?.nickname?:'')
 						if(User.get(nE.user_id?:0.toLong())?.code?:''){
 							mailText =mailText.replace(
-								'[@URL]',(ConfigurationHolder.config.grails.mailServerURL+((Tools.getIntVal(ConfigurationHolder.config.isdev,0)==1)?("/"+ConfigurationHolder.config.grails.serverApp):"")+'/user/confirm/'+User.get(nE.user_id?:0.toLong())?.code?:''))
+								'[@URL]',(grailsApplication.config.grails.mailServerURL+((Tools.getIntVal(grailsApplication.config.isdev,0)==1)?("/"+grailsApplication.config.grails.serverApp):"")+'/user/confirm/'+User.get(nE.user_id?:0.toLong())?.code?:''))
 						}
 						def sHeader=oEmail_template?.title
 						try{
-              if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-                mailerService.sendMailGAE(mailText,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,nE.email,sHeader,1)        
+              if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+                mailerService.sendMailGAE(mailText,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,nE.email,sHeader,1)        
               else{
 							sendMail{
 								to nE.email
@@ -42,7 +43,7 @@ class NoteMailerService {
 						}catch(Exception e) {
 							log.debug("Cannot sent email \n"+e.toString().replace("'","").replace('"','')+" in NoteMailService")
 						}
-						th.sleep(Tools.getIntVal(ConfigurationHolder.config.notemail.delay,15) *1000)
+						th.sleep(Tools.getIntVal(grailsApplication.config.notemail.delay,15) *1000)
 					}
 				}
 			}

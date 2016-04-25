@@ -2652,6 +2652,13 @@ ul.verifications-list li.verifications-list-item .verifications-icon {
     height: 26px;
     margin-top: 0;    
 }
+ul.verifications-list li.verifications-list-item .verifications-icon.decline {
+    background: url("../images/icons-verification.png") no-repeat scroll -25px 0 transparent;
+    float: right;
+		width: 25px;
+    height: 26px;
+    margin-top: 0;
+}
 ul.verifications-list li.verifications-list-item .verifications-icon.none {
     background: url("../images/checkmark-inactive.png") no-repeat scroll left bottom transparent;
 }

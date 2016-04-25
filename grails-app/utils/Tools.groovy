@@ -1,11 +1,12 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-class Tools  {   
+class Tools  {
+
   static prepareSearchString(sRequest){
     //из пользовательской ключевой фразы надо выкидывать символы:
     //    * ' " , ; %  с заменой их на  заменяя их на пробел
@@ -83,7 +84,7 @@ class Tools  {
         'h1','h2','h3','h4','h5','h6','strong']
 		break		
 	  case 'personal':	
-        if(Tools.getIntVal(ConfigurationHolder.config.editor.fixHtml)) start=true
+        if(Tools.getIntVal(Holders.config.editor.fixHtml)) start=true
         lsTags=['u','i','em','b','ol','ul','li','s','sub','sup','address','pre','p',
         'h1','h2','h3','h4','h5','h6','strong']
 		break
@@ -146,7 +147,7 @@ class Tools  {
       else 
         result += sPrepPhrase[i]
     }
-    if(bUrl && result=='') result = ((ConfigurationHolder.config.linkname.prefix)?ConfigurationHolder.config.linkname.prefix:"arenda_")
+    if(bUrl && result=='') result = ((Holders.config.linkname.prefix)?Holders.config.linkname.prefix:"arenda_")
     return result
   }
 
@@ -183,7 +184,7 @@ class Tools  {
   static String generateNorder(lId,iType) {
     def result = ''
     (6-lId.toString().size()).times{result+='0'}
-    return ((ConfigurationHolder.config.payorder.prefix)?ConfigurationHolder.config.payorder.prefix.trim():'st')+new Date().getYear().toString()[-1]+iType.toString()+result+lId.toString()
+    return ((Holders.config.payorder.prefix)?Holders.config.payorder.prefix.trim():'st')+new Date().getYear().toString()[-1]+iType.toString()+result+lId.toString()
   }
 
   static String generateAccountcode(lId,iType) {
@@ -336,4 +337,13 @@ class Tools  {
     return mac.doFinal()
   }
 
+  static Date safetyParseDate(String _date, String _format=null){
+    if(!_date)
+      return null
+    try{
+      return Date.parse(_format?:'dd.MM.yyyy', _date)
+    }catch(Exception e){
+      return null
+    }
+  }
 }

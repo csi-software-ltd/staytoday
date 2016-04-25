@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class HelpController {  
   def requestService
@@ -20,11 +20,11 @@ class HelpController {
       where h.modstatus=1 and h.city_id!=0 and h.city_id=c.id
       group by h.city_id
       having count(h.id) > :minCount
-      order by c.name""",["minCount":(Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.minCityCount,5) as long)])
+      order by c.name""",["minCount":(Tools.getIntVal(grailsApplication.config.index.cityTagCloud.minCityCount,5) as long)])
     hsRes.citycloud = cityList.inject([:]){map,tag -> map[tag[hsRes.context?.lang?1:0]]=[count:tag[2],is_index:tag[3],name2:tag[hsRes.context?.lang?1:4],country_id:tag[5],domain:tag[6]];map}
     hsRes.citycloudParams = [:]
-    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.max,50)
-    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(ConfigurationHolder.config.index.cityTagCloud.fontCount.middle,20)
+    hsRes.citycloudParams.maxFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.max,50)
+    hsRes.citycloudParams.middleFontCount = Tools.getIntVal(grailsApplication.config.index.cityTagCloud.fontCount.middle,20)
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////// Help Hosting //////////////////////////////////////////////////////////
@@ -169,9 +169,9 @@ class HelpController {
   def faq={
     requestService.init(this)
     def hsRes=requestService.getContextAndDictionary(false,true,true,false,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/help',base:hsRes.context?.mobileURL_lang,permanent:true)    
-    hsRes.urlvideo=ConfigurationHolder.config.urlvideolesson
+    hsRes.urlvideo=grailsApplication.config.urlvideolesson
     hsRes.lessons=Video_lesson.findAllByType_idNotEqual(3,[sort:'nomer',order:'asc'])
     requestService.setStatistic('help',45)
     return hsRes
@@ -195,7 +195,7 @@ class HelpController {
     def gbtype_id = requestService.getLongDef('gbtype_id',1)
     hsRes += getDictionary()
     hsRes.gbtype = Gbtype.get(gbtype_id)
-    hsRes.mail_support=ConfigurationHolder.config.mail.support?:MAIL_SUPPORT
+    hsRes.mail_support=grailsApplication.config.mail.support?:MAIL_SUPPORT
     return hsRes
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +245,7 @@ class HelpController {
 
       def aTmpRectext=hsRes.inrequest.rectext.split(/a\shref/)
       if(aTmpRectext.size()==1){
-        if(hsRes.ip.count<Tools.getIntVal(ConfigurationHolder.config.guestbook.ip_max,10)){		  	
+        if(hsRes.ip.count<Tools.getIntVal(grailsApplication.config.guestbook.ip_max,10)){		  	
           try{		
             def oGuestbook = new Guestbook(user_id  :(hsRes.user?.id)?:0,
                                        gbtype_id :hsRes.inrequest.gbtype_id,                                       
@@ -284,7 +284,7 @@ class HelpController {
     hsRes += getDictionary()
     hsRes += [gbtype:Gbtype.get(hsRes.inrequest.gbtype_id)]
 	
-    hsRes.mail_support=ConfigurationHolder.config.mail.support?:MAIL_SUPPORT
+    hsRes.mail_support=grailsApplication.config.mail.support?:MAIL_SUPPORT
 	
     render(view:'guestbook',model:hsRes)
   }
@@ -317,7 +317,7 @@ class HelpController {
         else if (oGuestbook.gbtype_id == 1) iType = 20
         requestService.setStatistic('guestbook',iType)
 		
-        if (ConfigurationHolder.config.mail.guestbook.to){
+        if (grailsApplication.config.mail.guestbook.to){
           def sHtml= """
                   id                ${iId}
                   gbtype_id         ${oGuestbook.gbtype_id}
@@ -333,11 +333,11 @@ class HelpController {
                   """
           def sSubject="Guestbook  ${iId}, ${oGuestbook.rectitle}"
           
-          if(Tools.getIntVal(ConfigurationHolder.config.mail_gae,0))
-             mailerService.sendMailGAE(sHtml,ConfigurationHolder.config.grails.mail.from1,ConfigurationHolder.config.grails.mail.username,ConfigurationHolder.config.mail.guestbook.to,sSubject)        
+          if(Tools.getIntVal(grailsApplication.config.mail_gae,0))
+             mailerService.sendMailGAE(sHtml,grailsApplication.config.grails.mail.from1,grailsApplication.config.grails.mail.username,grailsApplication.config.mail.guestbook.to,sSubject)        
           else{
             sendMail{
-              to ConfigurationHolder.config.mail.guestbook.to
+              to grailsApplication.config.mail.guestbook.to
               subject sSubject
               html sHtml
               log.debug("LOG>>Sent mail guestbook 'Guestbook  ${iId}, ${oGuestbook.rectitle}'")
@@ -346,7 +346,7 @@ class HelpController {
         }
       }
     }
-    hsRes.mail_support=ConfigurationHolder.config.mail.support?:MAIL_SUPPORT
+    hsRes.mail_support=grailsApplication.config.mail.support?:MAIL_SUPPORT
     return hsRes
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////

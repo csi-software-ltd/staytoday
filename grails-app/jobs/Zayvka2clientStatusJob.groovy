@@ -1,9 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
+import grails.util.Holders
 class Zayvka2clientStatusJob {
 	static triggers = {
 		//simple repeatInterval: 250000 // execute job once in 250 seconds
-		cron cronExpression: ((ConfigurationHolder.config.zayvka2clientStatus.cron!=[:])?ConfigurationHolder.config.zayvka2clientStatus.cron:"0 0 0 * * ?")
+		cron cronExpression: ((Holders.config.zayvka2clientStatus.cron!=[:])?Holders.config.zayvka2clientStatus.cron:"0 0 0 * * ?")
 	}
 
 	def execute() {
@@ -41,7 +40,7 @@ class Zayvka2clientStatusJob {
 					oZ.modstatus = -3
 					oZ.save(flush:true)
 					if (!Mbox.findByZayvka_id(oZ.id)) {
-						def oAdmin = Admin.get(Tools.getIntVal(ConfigurationHolder.config.notifyAdmin.id,2))
+						def oAdmin = Admin.get(Tools.getIntVal(Holders.config.notifyAdmin.id,2))
 						if (oAdmin?.email)
 							(new Zayavkabyemail(oAdmin.email,oAdmin.name,oZ.id.toString(),oZ.ztext,oZ.date_start,oZ.date_end,'#zayavkaExpireNotice')).save(flush:true)
 					}

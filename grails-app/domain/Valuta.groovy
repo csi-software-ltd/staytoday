@@ -1,11 +1,7 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-class Valuta {    
-  
-  static constraints = {	
-  }
-  static mapping = {
-    version false
-  }
+import grails.util.Holders
+class Valuta {
+  static mapping = { version false }
+
   Integer id
   Integer modstatus
   Integer regorder
@@ -19,8 +15,7 @@ class Valuta {
   String toString() {"${this.code}" }  
   
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
   void setValutaCookie(requestService, value) {
-	requestService.setCookie('SHOWN_VALUTA',value.toString(),Tools.getIntVal(ConfigurationHolder.config.valuta.timeout,2592000))
+    requestService.setCookie('SHOWN_VALUTA',value.toString(),Tools.getIntVal(Holders.config.valuta.timeout,2592000))
   }
 }

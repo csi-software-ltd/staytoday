@@ -1,12 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class Advbanner {
   def searchService
   def sessionFactory
-  
-  static mapping = {
-    
-  }
-  
+
   Long id
   String bname  
   Date date_start
@@ -78,11 +74,11 @@ class Advbanner {
   }
   //////////////////////////////////////////////////////////////////////////////////
   def updateClickBannersAndRedirect(iId) { 
-    if(iId==0)  return ConfigurationHolder.config.default_banner_url
+    if(iId==0)  return Holders.config.default_banner_url
 	
 	def oBanner=Advbanner.get(iId)
 	if((oBanner?.burl?:'').size()==0 && (oBanner?.bclass?:0)==1)
-      return ConfigurationHolder.config.default_banner_url
+      return Holders.config.default_banner_url
 	  
     def session = sessionFactory.getCurrentSession()
     def sSql="UPDATE advbanner SET bclick=bclick+1 WHERE id =:id"
@@ -94,7 +90,7 @@ class Advbanner {
       log.debug("Error Banners:updateClickBanners\n"+e.toString());
     }
     session.clear()    
-    def sOut=(oBanner==null)?ConfigurationHolder.config.default_banner_url : oBanner.burl
+    def sOut=(oBanner==null)?Holders.config.default_banner_url : oBanner.burl
     return (sOut.indexOf('http://')<0)?('http://'+sOut):sOut
   }  
   ///////////////////////////////////////////////////////////////////////////////////////

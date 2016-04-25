@@ -49,7 +49,7 @@
         <td>${record.user_id}</td>
         <td>${record.client_id}</td>
         <td>${record.client_name}</td>          
-        <td>${record.pricestandard}</td>
+        <td style="${record.unrealiable?'color:red':''}">${record.pricestatus==1?record.pricestandard:record.pricestatus==2?'неактивна':'отключена'}</td>
         <td>
           <g:each in="${modstatus}" var="it">
             <g:if test="${it.modstatus==record.modstatus}">${it.name}</g:if>

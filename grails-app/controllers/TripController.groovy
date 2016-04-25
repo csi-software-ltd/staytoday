@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import grails.converters.JSON
 class TripController {  
   def requestService
@@ -21,7 +21,7 @@ class TripController {
  
   def init(hsRes){
     def hsTmp=findClientId(hsRes)
-    hsTmp.imageurl = ConfigurationHolder.config.urlphoto + hsTmp.client_id.toString()+'/'
+    hsTmp.imageurl = grailsApplication.config.urlphoto + hsTmp.client_id.toString()+'/'
     session.attention_message_once=null
     def oClient=Client.get(hsTmp?.client_id?:0)    
     if(oClient&&!(oClient?.is_notification?:0)){
@@ -62,8 +62,8 @@ class TripController {
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
 
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto  
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.homeperson=Homeperson.findAll('FROM Homeperson')
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
@@ -134,8 +134,8 @@ class TripController {
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
 
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto  
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.homeperson=Homeperson.findAll('FROM Homeperson')
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
@@ -178,8 +178,8 @@ class TripController {
     hsRes+=findClientId(hsRes)
 
     hsRes.inrequest=[:]
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
     hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -213,8 +213,8 @@ class TripController {
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)	
 
-    hsRes.imageurl = ConfigurationHolder.config.urluserphoto  
-    hsRes.urlphoto = ConfigurationHolder.config.urlphoto
+    hsRes.imageurl = grailsApplication.config.urluserphoto  
+    hsRes.urlphoto = grailsApplication.config.urlphoto
     hsRes.homeperson=Homeperson.list()
     def oValutarate = new Valutarate()
     hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
@@ -253,7 +253,7 @@ class TripController {
   def favorite ={
     requestService.init(this)  
     def hsRes=requestService.getContextAndDictionary(false,true,true)
-    if(request.getHeader("User-Agent")?.contains('Mobile'))
+    if(request.getHeader("User-Agent")?.contains('Mobile')&&!request.getHeader("User-Agent")?.contains('iPad'))
       redirect(uri:'/favorites',base:hsRes.context?.mobileURL_lang,permanent:true)    
     if (!checkUser(hsRes)) return
     hsRes+=init(hsRes)
@@ -296,7 +296,7 @@ class TripController {
       return
     }
     hsRes.cancellation=Rule_cancellation.get(hsRes.trip?.rule_cancellation_id)
-	  hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)	
+	  hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)	
 
     return hsRes
   }
@@ -307,7 +307,7 @@ class TripController {
     if (!checkUser(hsRes)) return
     hsRes.inrequest=[:]
     hsRes.count=0
-    hsRes.inrequest.max=Tools.getIntVal(ConfigurationHolder.config.search.listing.max,30)
+    hsRes.inrequest.max=Tools.getIntVal(grailsApplication.config.search.listing.max,30)
     if(hsRes.wallet){    	
       hsRes.modstatus=Homemodstatus.list()
       hsRes.hometype=Hometype.list([sort:'id']) 
@@ -335,7 +335,7 @@ class TripController {
         hsRes.records=lsRecords
       }
       
-      hsRes.urlphoto = ConfigurationHolder.config.urlphoto   
+      hsRes.urlphoto = grailsApplication.config.urlphoto   
       def oValutarate = new Valutarate()
       hsRes.valutaRates = oValutarate.csiGetRate(hsRes.context.shown_valuta.id)
       hsRes.valutaSym = Valuta.get(hsRes.context.shown_valuta.id).symbol
@@ -370,8 +370,8 @@ class TripController {
     hsRes.hometype=Hometype.list([sort:'regorder'])
     hsRes.homeperson=Homeperson.list()
 	  hsRes.country=Country.list([sort:'regorder'])
-	  hsRes.textlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
-	  hsRes.stringlimit = Tools.getIntVal(ConfigurationHolder.config.smalltext.limit,220)
+	  hsRes.textlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
+	  hsRes.stringlimit = Tools.getIntVal(grailsApplication.config.smalltext.limit,220)
 	  hsRes.timetodecide=Timetodecide.findAllByDaysLessThan(31)
     hsRes.valuta=Valuta.findAllByModstatus(1,[sort:'regorder'])
 	
@@ -510,7 +510,7 @@ class TripController {
   				flash.error<<8
   			}
   		if(!(flash.error.size())){
-  			def stringlimit = Tools.getIntVal(ConfigurationHolder.config.largetext.limit,5000)
+  			def stringlimit = Tools.getIntVal(grailsApplication.config.largetext.limit,5000)
   			if (hsRes.inrequest?.ztext.size()>stringlimit) hsRes.inrequest?.ztext = hsRes.inrequest?.ztext.substring(0, stringlimit)
   			def oZayavka = new Zayavka(hsRes.inrequest, hsRes.user.id, DATE_FORMAT)
   			try{

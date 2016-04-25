@@ -1,8 +1,8 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Holders
 class ClearFavouriteJob {
 	static triggers = {
 		//simple repeatInterval: 200000 // execute job once in 200 seconds
-		cron cronExpression: ((ConfigurationHolder.config.clearfavourite.cron!=[:])?ConfigurationHolder.config.clearfavourite.cron:"0 0 2 * * ?")
+		cron cronExpression: ((Holders.config.clearfavourite.cron!=[:])?Holders.config.clearfavourite.cron:"0 0 2 * * ?")
 	}
 
   def execute() { 

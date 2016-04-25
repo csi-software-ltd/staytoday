@@ -390,7 +390,13 @@
                           <div class="verifications-icon"></div>
                           <div class="verifications-legend skype"></div>
                           <span class="label">skype</span><br/>
-                          <span class="counts tel">${(sender?.client_id != user?.client_id) ? sender?.skype : recipient?.skype}</span>
+                          <span class="counts tel">
+                          <g:if test="${msg?.modstatus>3 || !isHideContact}">
+                            ${(sender?.client_id != user?.client_id) ? sender?.skype : recipient?.skype}
+                          </g:if><g:else>
+                            <g:each in="${(sender?.client_id != user?.client_id) ? sender?.skype : recipient?.skype}"><span class="p">&nbsp;&nbsp;</span></g:each>
+                          </g:else>
+                          </span>
                         </li>
                       </g:if>
                       </ul>

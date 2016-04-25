@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+//import org.codehaus.groovy.grails.commons.grailsApplication
 import org.springframework.context.i18n.LocaleContextHolder as LCH
 import javax.servlet.http.Cookie
 
@@ -9,6 +9,7 @@ class RequestService {
   def transient m_oController=null
   def transient usersService
   def static final DATE_FORMAT='yyyy-MM-dd'
+  def grailsApplication
   //def transient bannersService
   
   def init(oController){
@@ -32,16 +33,16 @@ class RequestService {
     def hsRes=[
           context:[
             lang:(LCH.getLocale().language.toString()=='en')?'_en':'',
-	          is_dev:(Tools.getIntVal(ConfigurationHolder.config.isdev,0)==1),
+	          is_dev:(Tools.getIntVal(grailsApplication.config.isdev,0)==1),
             addport:(iPort!=80 && iPort!=443)?(':'+iPort):'',//443 is https port
-            serverURL:ConfigurationHolder.config.grails.mailServerURL?:ConfigurationHolder.config.grails.serverURL,                        
-            mainserverURL:ConfigurationHolder.config.grails.serverURL,
-            sequreServerURL:Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(ConfigurationHolder.config.grails.secureServerURL?:ConfigurationHolder.config.grails.serverURL):ConfigurationHolder.config.grails.serverURL,
-            appname:ConfigurationHolder.config.grails.serverApp,
-	          mapkey:ConfigurationHolder.config.yandex.mapkey,
+            serverURL:grailsApplication.config.grails.mailServerURL?:grailsApplication.config.grails.serverURL,                        
+            mainserverURL:grailsApplication.config.grails.serverURL,
+            sequreServerURL:Tools.getIntVal(Dynconfig.findByName('global.https.enable')?.value,0)?(grailsApplication.config.grails.secureServerURL?:grailsApplication.config.grails.serverURL):grailsApplication.config.grails.serverURL,
+            appname:grailsApplication.config.grails.serverApp,
+	          mapkey:grailsApplication.config.yandex.mapkey,
             curl_ru:'http://'+m_oController.request.serverName+sForwardURI.replace('/en',''),                             
             cquery:(m_oController.request.getQueryString()?:'')-'&lang=en'-'&lang=ru'-'lang=en'-'lang=ru',
-            mobileURL:ConfigurationHolder.config.grails.mobileURL            
+            mobileURL:grailsApplication.config.grails.mobileURL            
           ]
         ]       
     if(sForwardURI.contains('/en/') || (sForwardURI.size() == 3 && sForwardURI.substring(sForwardURI.size() - 3)=='/en'))
@@ -52,7 +53,7 @@ class RequestService {
       hsRes.context.curl_en='http://'+m_oController.request.serverName+(hsRes?.context?.is_dev?('/'+hsRes?.context?.appname):'')+'/en'+(hsRes?.context?.is_dev?sForwardURI.replace('/'+hsRes?.context?.appname,''):sForwardURI)
     }
     hsRes.context.curl=hsRes.context?.lang?hsRes.context.curl_en:hsRes.context.curl_ru
-    hsRes.context.serverURL=ConfigurationHolder.config.grails.mailServerURL?:(hsRes?.context?.lang?(ConfigurationHolder.config.grails.serverURL+'/en'):ConfigurationHolder.config.grails.serverURL)                       
+    hsRes.context.serverURL=grailsApplication.config.grails.mailServerURL?:(hsRes?.context?.lang?(grailsApplication.config.grails.serverURL+'/en'):grailsApplication.config.grails.serverURL)                       
      
 //lang url>>    
     def sUrl=(m_oController.request.isSecure()?'https':'http')+'://'+sServer+hsRes?.context?.addport+(hsRes?.context?.is_dev?('/'+hsRes?.context?.appname):'')
@@ -60,7 +61,7 @@ class RequestService {
     hsRes.context.sequreServerURL=hsRes?.context?.lang?(hsRes.context.sequreServerURL+'/en'):hsRes.context.sequreServerURL
     hsRes.context.mobileURL=hsRes?.context?.mobileURL+hsRes?.context?.addport+(hsRes?.context?.is_dev?('/'+hsRes?.context?.appname):'')
     hsRes.context.mobileURL_lang=hsRes?.context?.mobileURL+(hsRes.context.lang?'/en':'')
-    hsRes.context.absolute_lang=ConfigurationHolder.config.grails.serverURL.trim()+(hsRes.context.lang?'/en':'')    
+    hsRes.context.absolute_lang=grailsApplication.config.grails.serverURL.trim()+(hsRes.context.lang?'/en':'')    
 //<<    
 	//spy protection
     /*hsRes.spy_protection=false
@@ -75,11 +76,11 @@ class RequestService {
 	
 	//valuta ------------------------------//owner Dmitry
     hsRes.change_valuta_menu=Valuta.findAll('FROM Valuta WHERE modstatus=1 ORDER BY regorder')
-    hsRes.context.shown_valuta=Valuta.get(getCookie('SHOWN_VALUTA')?:Tools.getIntVal(ConfigurationHolder.config.valuta.shown_valuta_id_default,857).toInteger())    
-    hsRes.vk_api_key=ConfigurationHolder.config.vk.APIKey
-    hsRes.fb_api_key=ConfigurationHolder.config.facebook.APIKey
+    hsRes.context.shown_valuta=Valuta.get(getCookie('SHOWN_VALUTA')?:Tools.getIntVal(grailsApplication.config.valuta.shown_valuta_id_default,857).toInteger())    
+    hsRes.vk_api_key=grailsApplication.config.vk.APIKey
+    hsRes.fb_api_key=grailsApplication.config.facebook.APIKey
 
-    hsRes.user_max_enter_fail=Tools.getIntVal(ConfigurationHolder.config.user_max_enter_fail,10)
+    hsRes.user_max_enter_fail=Tools.getIntVal(grailsApplication.config.user_max_enter_fail,10)
 					  
     if(bContextOnly)
       return hsRes          
@@ -137,7 +138,7 @@ class RequestService {
     }
    
     if(bNotice){
-      hsRes.serverUrl=ConfigurationHolder.config.grails.serverURL?:''
+      hsRes.serverUrl=grailsApplication.config.grails.serverURL?:''
       hsRes.notice=[]
       def oInfotext=Infotext.findWhere(controller:m_oController.controllerName,action:m_oController.actionName,is_anons:1)
       def i=0      
@@ -346,7 +347,7 @@ class RequestService {
   }
   ///////////////////////////////////////////////////////////////////////////////////
   def getMax(){
-    def iCfg=Tools.getIntVal(ConfigurationHolder.config.request.max)
+    def iCfg=Tools.getIntVal(grailsApplication.config.request.max)
     def iMax=getLongDef('max',iCfg).toInteger()
     return Math.min( iMax,iCfg)
   }
@@ -514,6 +515,20 @@ class RequestService {
       log.debug('Error in Request method sendError\n'+e.toString())
     }
   }
+  //////////////////////////////////////////////////////////////////////////////////////
+  def setStatus(iStatusCode){
+    if(checkInit()) return
+    
+    if((m_oController.response==null)||(m_oController.request==null)){
+      log.debug("ERROR: Call Request method sendError without nessesary params")
+      return
+    }
+    try{
+      m_oController.response.status = iStatusCode
+    }catch(Exception e){
+      log.debug('Error in Request method setStatus\n'+e.toString())
+    }
+  }
   ///////////////////////////////////////////////////////////////////////////////////
   def getList(sName,bZero=false){
     if(checkInit()) return null
@@ -531,12 +546,18 @@ class RequestService {
     return lsRes
   }
 
+  def getBodyXML(){
+    if(checkInit()) return null
+
+    m_oController.request.XML
+  }
+
   def getCurUser(){
     if(checkInit()) return [:]
 
     def hsTmp = [:]
     def tmp
-    if (!((tmp=Temp_notification.get(Tools.getIntVal(ConfigurationHolder.config.loginDenied.temp_notification_id,3)))?.status)) {
+    if (!((tmp=Temp_notification.get(Tools.getIntVal(grailsApplication.config.loginDenied.temp_notification_id,3)))?.status)) {
       hsTmp.user=usersService.getCurrentUser(this)
     } else {
       hsTmp.isLoginDenied=true
